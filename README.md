@@ -13,10 +13,22 @@ tocado la partición de firmware y no se ha modificado el bootloader.
 | Apps de usuario instaladas | 11 | 5 (las que usas) + `com.mitv.tvhome.mitvplus` deshabilitada |
 | Disco libre en `/data` | 1,8 GB (60% ocupado) | **2,2 GB (52% ocupado)** |
 | Paquetes de terceros activos | 99 | 72 |
-| RAM disponible | ~242 MB | ~249 MB |
+| RAM disponible | ~242 MB | ~321 MB |
 
 Apps de usuario que quedan (las que sí usas): **Prime Video, SkyShowtime,
 HBO Max, Spotify, Twitch y Plex**.
+
+## Launcher propio
+
+Además del debloat, se instaló un **launcher propio estilo Apple TV**
+(`launcher/` en este repo) que sustituye al launcher de Google TV: sin fila
+"Patrocinado", sin "Mi Channel", sin recomendaciones. Ver
+[`launcher/README.md`](launcher/README.md).
+
+Estado actual del stick: `com.suop.tvlauncher` es el HOME por defecto y
+`com.google.android.tvlauncher` está deshabilitado (si no, el sistema lo
+relanza y se pone delante). `launcher/tools/uninstall-launcher.sh` deshace
+todo y devuelve el launcher de fábrica.
 
 ## Qué se desactivó (21 paquetes, `pm disable-user --user 0`)
 
