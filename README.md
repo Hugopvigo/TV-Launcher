@@ -179,3 +179,35 @@ volver a aceptar el diálogo en la tele.
   (`NullPointerException` en `DownloadThread.run`).
 - `pm install-existing` funciona en este dispositivo: se comprobó restaurando
   Netflix y volviéndolo a desinstalar.
+- **Bug encontrado y corregido en `restore.sh`**: `adb shell` hereda el `stdin`
+  del bucle `while read` y se come el resto de la lista, así que solo se
+  reactivaba el primer paquete. Se arregló con `< /dev/null` en cada llamada
+  a `adb` (también en `disable.sh` y `backup.sh`). El restaurador se probó de
+  verdad: deshabilita todo y vuelve a habilitar los 21 correctamente.
+
+## ADB cerrado (estado final)
+
+Al terminar, el ADB de red se dejó **cerrado**, como pide el prompt:
+
+```bash
+settings put global adb_enabled 0     # equivalente a apagar USB debugging
+adb shell reboot
+```
+
+Verificado tras el reinicio:
+
+```
+$ timeout 5 bash -c '</dev/tcp/192.168.3.124/5555'
+bash: connect: Connection refused        # puerto 5555 CERRADO
+$ adb connect 192.168.3.124:5555
+failed to connect: Connection refused
+```
+
+El stick sigue vivo y con Wi‑Fi (ping 4 ms). El puerto 5555 va en texto
+plano: con `ro.adb.secure=0` cualquier equipo de la red podría abrir una
+shell; por eso se cierra.
+
+> **Para volver a conectar ADB** (si lo necesitas en el futuro): en el stick,
+> Ajustes → Developer options → *ADB debugging* (o *Network debugging*), y
+> conectar con `adb connect 192.168.3.124:5555`. Vuelve a aparecer el diálogo
+> "Permitir depuración" que hay que aceptar con el mando.
