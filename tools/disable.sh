@@ -10,7 +10,7 @@ LIST="$(dirname "$0")/disabled.list"
 
 for pkg in "$@"; do
   echo "== pm disable-user --user 0 $pkg"
-  adb_tv shell "pm disable-user --user 0 $pkg" || echo "   !! fallo al desactivar $pkg"
+  adb_tv shell "pm disable-user --user 0 $pkg" < /dev/null || echo "   !! fallo al desactivar $pkg"
   grep -qxF "$pkg" "$LIST" 2>/dev/null || echo "$pkg" >> "$LIST"
 done
 
