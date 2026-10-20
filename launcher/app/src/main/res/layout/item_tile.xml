@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tesela de la rejilla. El "cristal" no va aqui: es un unico elemento
+  compartido que dibuja la actividad encima de la tesela enfocada.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/tile_padding_vertical"
+    android:paddingBottom="@dimen/tile_padding_vertical">
+
+    <com.suop.tvlauncher.ui.RoundedIcon
+        android:id="@+id/icon"
+        android:layout_width="@dimen/tile_size"
+        android:layout_height="@dimen/tile_size"
+        tools:src="@mipmap/ic_launcher" />
+
+    <TextView
+        android:id="@+id/label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/tile_label_margin"
+        android:alpha="0"
+        android:ellipsize="end"
+        android:fontFamily="@font/outfit_medium"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="@color/text_primary"
+        android:textSize="@dimen/tile_label_size"
+        tools:text="YouTube" />
+
+</LinearLayout>

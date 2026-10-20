@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Medidas para 1920x1080 a densidad 2.0 (960x540 dp).
+  Reparto vertical: barra 140 + rejilla 250 + nombre 44 + dock 92 = 526.
+  La rejilla cabe con dos filas de 4 teselas de 88dp.
+-->
+<resources>
+    <dimen name="screen_margin">48dp</dimen>
+    <dimen name="clock_size">50sp</dimen>
+    <dimen name="greeting_size">19sp</dimen>
+    <dimen name="date_size">15sp</dimen>
+    <dimen name="tile_size">84dp</dimen>
+    <dimen name="tile_label_size">14sp</dimen>
+    <dimen name="tile_padding_vertical">8dp</dimen>
+    <dimen name="tile_label_margin">8dp</dimen>
+    <dimen name="dock_height">104dp</dimen>
+    <dimen name="dock_icon_size">62dp</dimen>
+    <dimen name="dock_gap">22dp</dimen>
+    <dimen name="pill_height">38dp</dimen>
+    <dimen name="pill_text_size">15sp</dimen>
+    <dimen name="focused_name_size">26sp</dimen>
+    <dimen name="focused_name_height">40dp</dimen>
+</resources>

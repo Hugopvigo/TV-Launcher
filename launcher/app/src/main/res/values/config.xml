@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Configuracion del launcher. Se edita aqui y se recompila.
+
+  dock:  los cuatro iconos de la fila de abajo, en orden.
+  grid_columns: columnas de la rejilla de apps.
+-->
+<resources>
+    <string-array name="dock_packages">
+        <item>com.google.android.youtube.tv</item>
+        <item>com.amazon.amazonvideo.livingroom</item>
+        <item>com.skyshowtime.skyshowtime.google</item>
+        <item>com.wbd.stream</item>
+    </string-array>
+
+    <integer name="grid_columns">4</integer>
+</resources>

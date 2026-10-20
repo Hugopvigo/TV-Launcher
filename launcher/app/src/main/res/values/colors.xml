@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#FF000000</color>
+    <color name="dock_band">#FF141414</color>
+    <color name="glass">#22FFFFFF</color>
+    <color name="glass_stroke">#40FFFFFF</color>
+    <color name="text_primary">#FFF5F5F7</color>
+    <color name="text_secondary">#FFA1A1A6</color>
+    <color name="text_tertiary">#FF6E6E73</color>
+    <color name="pill">#1FFFFFFF</color>
+    <color name="pill_stroke">#33FFFFFF</color>
+</resources>

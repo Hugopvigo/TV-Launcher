@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.suop.tvlauncher'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "com.suop.tvlauncher"
+        // minSdk 21: el Mi TV Stick es Android 9 (API 28), pero asi
+        // el launcher tambien sirve en sticks y-carbox Android mas viejos.
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        debug {
+            // El prompt pide un build debug: vale para instalar por ADB.
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.appcompat:appcompat:1.4.2'
+
+    testImplementation 'junit:junit:4.13.2'
+}
