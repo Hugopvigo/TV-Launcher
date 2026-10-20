@@ -20,8 +20,10 @@ public final class Clock {
 
     /** Fecha larga: "martes, 20 de octubre". */
     public static String formatDate(Calendar calendar, Locale locale) {
-        String month = String.format(locale, "%tB", calendar.getTime());
-        String day = String.format(locale, "%te", calendar.getTime());
-        return month + " " + day;
+        // getDisplayName da el nombre ya capitalizado y en el idioma pedido.
+        String dayName = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, locale);
+        String month = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, locale);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        return dayName + ", " + day + " de " + month;
     }
 }

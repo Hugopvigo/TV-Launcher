@@ -7,7 +7,5 @@ public enum Zone {
     /** Barra superior: entradas, wifi y ajustes. */
     TOP_BAR,
     /** Rejilla de apps. */
-    GRID,
-    /** Banda del dock. */
-    DOCK
+    GRID
 }

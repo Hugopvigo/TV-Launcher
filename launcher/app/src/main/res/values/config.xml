@@ -2,16 +2,22 @@
 <!--
   Configuracion del launcher. Se edita aqui y se recompila.
 
-  dock:  los cuatro iconos de la fila de abajo, en orden.
-  grid_columns: columnas de la rejilla de apps.
+  grid_columns: columnas de la rejilla.
+  apps_first:   apps que van arriba, en este orden.
+  apps_last:    apps que van al final de la rejilla.
 -->
 <resources>
-    <string-array name="dock_packages">
+    <integer name="grid_columns">4</integer>
+
+    <string-array name="apps_first">
         <item>com.google.android.youtube.tv</item>
         <item>com.amazon.amazonvideo.livingroom</item>
         <item>com.skyshowtime.skyshowtime.google</item>
         <item>com.wbd.stream</item>
+        <item>com.spotify.tv.android</item>
     </string-array>
 
-    <integer name="grid_columns">4</integer>
+    <string-array name="apps_last">
+        <item>com.google.android.videos</item>
+    </string-array>
 </resources>

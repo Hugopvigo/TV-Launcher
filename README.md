@@ -197,8 +197,35 @@ volver a aceptar el diálogo en la tele.
   a `adb` (también en `disable.sh` y `backup.sh`). El restaurador se probó de
   verdad: deshabilita todo y vuelve a habilitar los 21 correctamente.
 
-## ADB cerrado (estado final)
+## El mando no despertaba el stick (arreglado)
 
+El mando del Mi TV Stick es **Bluetooth** (aparece emparejado como
+`MiTVStick`), no infrarrojo. Al entrar en suspensión se apagaba el Bluetooth
+y el mando ya no despertaba el dispositivo: había que apagar y encender la TV.
+
+**La causa era el debloat**: el protector de pantalla configurado era
+`com.google.android.backdrop`, que desactivé en el lote 3. Sin un componente
+de dream válido, el stick entraba en suspensión profunda en vez de activar el
+protector, y con el BT apagado el mando no llegaba.
+
+Arreglo aplicado:
+
+```bash
+adb shell settings put secure screensaver_components com.mitv.dream/.MiDream
+adb shell settings put global stay_on_while_plugged_in 7
+adb shell settings put system screen_off_timeout 1800000
+```
+
+`com.mitv.dream/.MiDream` es el protector de pantalla de Xiaomi
+(`DreamService` válido). Con él el stick entra en modo protector en vez de
+suspenderse, el Bluetooth sigue vivo y el mando lo despierta.
+`stay_on_while_plugged_in 7` lo mantiene despierto mientras está alimentado
+(el stick se enchufa al TV por USB).
+
+**Aviso**: si se cambia el protector de pantalla, hay que volver a apuntar a
+`com.mitv.dream/.MiDream` o el mando volverá a fallar.
+
+## ADB cerrado (estado final)
 Al terminar, el ADB de red se dejó **cerrado**, como pide el prompt:
 
 ```bash

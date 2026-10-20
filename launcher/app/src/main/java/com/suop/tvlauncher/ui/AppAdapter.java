@@ -98,9 +98,16 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         View icon = tile.findViewById(R.id.icon);
         View label = tile.findViewById(R.id.label);
         if (icon != null) {
-            icon.animate().scaleX(1.12f).scaleY(1.12f).setDuration(160).start();
+            icon.animate().cancel();
+            icon.animate()
+                    .scaleX(1.1f)
+                    .scaleY(1.1f)
+                    .setDuration(200)
+                    .setInterpolator(new android.view.animation.OvershootInterpolator(1.6f))
+                    .start();
         }
         if (label != null) {
+            label.animate().cancel();
             label.animate().alpha(1f).setDuration(160).start();
         }
     }
@@ -113,10 +120,12 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         View icon = tile.findViewById(R.id.icon);
         View label = tile.findViewById(R.id.label);
         if (icon != null) {
+            icon.animate().cancel();
             icon.animate().scaleX(1f).scaleY(1f).setDuration(160).start();
         }
         if (label != null) {
-            label.animate().alpha(0f).setDuration(160).start();
+            label.animate().cancel();
+            label.animate().alpha(0f).setDuration(140).start();
         }
     }
 

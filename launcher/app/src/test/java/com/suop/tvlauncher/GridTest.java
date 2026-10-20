@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Rejilla de apps: 4 columnas, orden alfabetico estable y docks configurable.
+ * Rejilla de apps: 4 columnas a todo el ancho, sin dock.
  */
 public class GridTest {
 
@@ -44,64 +44,53 @@ public class GridTest {
     }
 
     @Test
-    public void elDockSeSacaDeLaRejilla() {
+    public void todasLasAppsQuedanEnLaRejilla() {
         Grid grid = Grid.of(Arrays.asList(
                 item("youtube", "YouTube"), item("prime", "Prime Video"),
                 item("plex", "Plex"), item("twitch", "Twitch"),
-                item("spotify", "Spotify")),
-                4, Arrays.asList("youtube", "prime", "plex", "twitch"));
+                item("spotify", "Spotify")), 4);
 
-        assertEquals(1, grid.size());
-        assertEquals("Spotify", grid.at(0, 0).get().label);
+        // No hay dock: las 5 apps estan en la rejilla.
+        assertEquals(5, grid.size());
     }
 
     @Test
-    public void elDockConservaElOrdenPedidoAunQueNoSeaAlfabetico() {
+    public void lasColumnasDelDockYaNoExisten() {
         Grid grid = Grid.of(Arrays.asList(
-                item("youtube", "YouTube"), item("prime", "Prime Video"),
-                item("plex", "Plex"), item("twitch", "Twitch"),
-                item("spotify", "Spotify")),
-                4, Arrays.asList("twitch", "youtube", "prime", "plex"));
+                item("a", "A"), item("b", "B")), 4);
 
-        List<String> dock = grid.dockPackages();
-        assertEquals(Arrays.asList("twitch", "youtube", "prime", "plex"), dock);
-        assertEquals(1, grid.size());
-    }
-
-    @Test
-    public void unDockIncompletoNoInventaAppsQueElUsuarioNoPidio() {
-        Grid grid = Grid.of(Arrays.asList(
-                item("youtube", "YouTube"), item("prime", "Prime Video"),
-                item("plex", "Plex"), item("spotify", "Spotify")),
-                4, Arrays.asList("youtube", "prime"));
-
-        // El dock tiene solo las pedidas; las demas se quedan en la rejilla.
-        assertEquals(2, grid.dockPackages().size());
-        assertEquals("youtube", grid.dockPackages().get(0));
-        assertEquals("prime", grid.dockPackages().get(1));
+        assertEquals(1, grid.rows());
         assertEquals(2, grid.size());
     }
 
     @Test
-    public void unPaqueteDelDockQueNoExisteSeIgnora() {
-        Grid grid = Grid.of(Arrays.asList(
-                item("youtube", "YouTube"), item("spotify", "Spotify")),
-                4, Arrays.asList("youtube", "noexiste"));
+    public void unaRejillaVaciaNoTieneFilas() {
+        Grid grid = Grid.of(Arrays.<GridItem>asList(), 4);
 
-        assertEquals(1, grid.dockPackages().size());
-        assertEquals("youtube", grid.dockPackages().get(0));
+        assertEquals(0, grid.rows());
+        assertEquals(0, grid.size());
+        assertTrue(grid.at(0, 0).isEmpty());
     }
 
     @Test
-    public void lasColumnasDelDockSiempreSonCuatro() {
-        Grid grid = Grid.of(Arrays.asList(
-                item("youtube", "YouTube"), item("prime", "Prime Video"),
-                item("plex", "Plex"), item("twitch", "Twitch"),
-                item("spotify", "Spotify"), item("hbo", "HBO Max")),
-                4, Arrays.asList("youtube", "prime", "plex", "twitch"));
+    public void lasCeldasFueraDeRangoEstanVacias() {
+        Grid grid = Grid.of(Arrays.asList(item("a", "A")), 4);
 
-        assertEquals(4, grid.dockPackages().size());
-        // Spotify y HBO Max se quedan en la rejilla.
-        assertEquals(2, grid.size());
+        assertTrue(grid.at(-1, 0).isEmpty());
+        assertTrue(grid.at(0, -1).isEmpty());
+        assertTrue(grid.at(0, 4).isEmpty());
+        assertTrue(grid.at(5, 0).isEmpty());
+    }
+
+    @Test
+    public void elOrdenSeMantieneTalComoSePasa() {
+        List<GridItem> items = Arrays.asList(
+                item("b", "B"), item("a", "A"), item("c", "C"));
+
+        Grid grid = Grid.of(items, 4);
+
+        assertEquals("B", grid.at(0, 0).get().label);
+        assertEquals("A", grid.at(0, 1).get().label);
+        assertEquals("C", grid.at(0, 2).get().label);
     }
 }

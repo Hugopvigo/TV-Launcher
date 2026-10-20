@@ -14,6 +14,7 @@ import android.util.Log;
 
 import com.suop.tvlauncher.grid.Grid;
 import com.suop.tvlauncher.grid.GridItem;
+import com.suop.tvlauncher.ui.AppOrder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -114,9 +115,11 @@ public final class AppCatalog {
         return items;
     }
 
-    /** Construye la rejilla con el dock pedido. */
-    public static Grid buildGrid(List<Entry> entries, List<String> dockPackages) {
-        return Grid.of(toGridItems(entries), Grid.COLUMNS, dockPackages);
+    /** Construye la rejilla con todas las apps, en el orden configurado. */
+    public static Grid buildGrid(List<Entry> entries,
+                                  List<String> first,
+                                  List<String> last) {
+        return Grid.of(AppOrder.sort(toGridItems(entries), first, last), Grid.COLUMNS);
     }
 
     /** Abre una app por su componente. */

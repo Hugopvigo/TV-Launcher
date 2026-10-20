@@ -17,8 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.OvershootInterpolator;
-
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,7 +31,6 @@ import com.suop.tvlauncher.ui.AppAdapter;
 import com.suop.tvlauncher.ui.Clock;
 import com.suop.tvlauncher.ui.GlassHighlight;
 import com.suop.tvlauncher.ui.Greeting;
-import com.suop.tvlauncher.ui.Tint;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,9 +42,9 @@ import java.util.Locale;
  * Launcher estilo Apple TV para Android TV.
  *
  * Distribucion:
- *   - Barra superior: saludo, reloj y fecha a la izquierda; pastillas a la derecha.
- *   - Rejilla de 4 columnas con las apps de TV.
- *   - Banda del dock con cuatro iconos.
+ *   - Barra superior: saludo, reloj grande y fecha a la izquierda;
+ *     menus de entradas, Wi-Fi y ajustes a la derecha.
+ *   - Rejilla de 4 columnas con todas las apps, a todo el ancho.
  */
 public class LauncherActivity extends AppCompatActivity implements AppAdapter.FocusListener {
 
@@ -62,15 +59,12 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
     private TextView greeting;
     private TextView clock;
     private TextView date;
-    private TextView dockFocusName;
     private TextView btnInputs;
     private TextView btnWifi;
     private TextView btnSettings;
-    private LinearLayout inputsPanel;
-    private final com.suop.tvlauncher.ui.RoundedIcon[] dockIcons = new com.suop.tvlauncher.ui.RoundedIcon[4];
+    private LinearLayoutHolder inputsHolder;
 
     private final List<AppCatalog.Entry> entries = new ArrayList<>();
-    private List<String> dockPackages = new ArrayList<>();
     private Grid gridModel;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -82,6 +76,15 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         }
     };
 
+    /** Envoltorio para no arrastrar el tipo de la vista del panel. */
+    private static final class LinearLayoutHolder {
+        final android.widget.LinearLayout view;
+
+        LinearLayoutHolder(android.widget.LinearLayout view) {
+            this.view = view;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,23 +93,14 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         greeting = findViewById(R.id.greeting);
         clock = findViewById(R.id.clock);
         date = findViewById(R.id.date);
-        dockFocusName = findViewById(R.id.dock_focus_name);
         btnInputs = findViewById(R.id.btn_inputs);
         btnWifi = findViewById(R.id.btn_wifi);
         btnSettings = findViewById(R.id.btn_settings);
-        inputsPanel = findViewById(R.id.inputs_panel);
+        inputsHolder = new LinearLayoutHolder(findViewById(R.id.inputs_panel));
 
         grid = findViewById(R.id.grid);
-        dockIcons[0] = findViewById(R.id.dock_0);
-        dockIcons[1] = findViewById(R.id.dock_1);
-        dockIcons[2] = findViewById(R.id.dock_2);
-        dockIcons[3] = findViewById(R.id.dock_3);
 
         highlight = new GlassHighlight(this);
-
-        // El dock se configura en res/values/config.xml
-        String[] dock = getResources().getStringArray(R.array.dock_packages);
-        dockPackages = new ArrayList<>(Arrays.asList(dock));
 
         adapter = new AppAdapter(this);
         layoutManager = new GridLayoutManager(this, Grid.COLUMNS);
@@ -134,30 +128,13 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         highlight.setVisibility(View.GONE);
 
+        // Menus de la barra superior.
         btnInputs.setOnClickListener(v -> toggleInputs());
         btnWifi.setOnClickListener(v -> { /* la pastilla es informativa */ });
         btnSettings.setOnClickListener(v -> openSettings());
         btnInputs.setOnFocusChangeListener((v, f) -> onTopBarFocus(f, 0));
         btnWifi.setOnFocusChangeListener((v, f) -> onTopBarFocus(f, 1));
         btnSettings.setOnFocusChangeListener((v, f) -> onTopBarFocus(f, 2));
-
-        for (int i = 0; i < dockIcons.length; i++) {
-            final int index = i;
-            dockIcons[i].setOnClickListener(v -> launchDock(index));
-            dockIcons[i].setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) {
-                    if (navigator != null) {
-                        navigator.syncDock(index);
-                    }
-                    showDockName(index);
-                    highlight.setVisibility(View.GONE);
-                    // El icono del dock crece un poco al enfocarse.
-                    v.animate().scaleX(1.15f).scaleY(1.15f).setDuration(150).start();
-                } else {
-                    v.animate().scaleX(1f).scaleY(1f).setDuration(150).start();
-                }
-            });
-        }
 
         updateClock();
         updateWifiLabel();
@@ -182,36 +159,32 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         entries.clear();
         entries.addAll(AppCatalog.load(this, getPackageName()));
 
-        // El dock se lee de la configuracion; se ignoran los paquetes que
-        // no estén instalados.
-        String[] configured = getResources().getStringArray(R.array.dock_packages);
-        dockPackages = new ArrayList<>();
-        for (String pkg : configured) {
+        // Orden: las apps de config.xml primero, el resto alfabeticamente
+        // y las marcadas como ultimas al final.
+        List<String> first = Arrays.asList(
+                getResources().getStringArray(R.array.apps_first));
+        List<String> last = Arrays.asList(
+                getResources().getStringArray(R.array.apps_last));
+
+        gridModel = AppCatalog.buildGrid(entries, first, last);
+
+        // El adaptador recibe las apps en el mismo orden que la rejilla.
+        List<AppCatalog.Entry> ordered = new ArrayList<>();
+        for (GridItem item : gridModel.items()) {
             for (AppCatalog.Entry entry : entries) {
-                if (entry.packageName.equals(pkg) && !dockPackages.contains(pkg)) {
-                    dockPackages.add(pkg);
+                if (entry.packageName.equals(item.packageName)) {
+                    ordered.add(entry);
+                    break;
                 }
             }
         }
+        adapter.setItems(ordered);
 
-        gridModel = AppCatalog.buildGrid(entries, dockPackages);
-
-        // La rejilla son las apps que no estan en el dock.
-        List<AppCatalog.Entry> gridEntries = new ArrayList<>();
-        for (AppCatalog.Entry entry : entries) {
-            if (!dockPackages.contains(entry.packageName)) {
-                gridEntries.add(entry);
-            }
-        }
-        adapter.setItems(gridEntries);
-
-        buildDock();
-        rebuildNavigator();
-        refreshDockName();
+        navigator = new Navigator(gridModel.rows(), Grid.COLUMNS, 3);
 
         // Foco inicial en la primera tesela. Se espera a que la rejilla
         // tenga hijos: antes de eso no hay ninguna tesela que enfocar.
-        if (gridEntries.size() > 0) {
+        if (!ordered.isEmpty()) {
             grid.getViewTreeObserver().addOnGlobalLayoutListener(
                     new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
                         @Override
@@ -225,34 +198,6 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
                         }
                     });
         }
-    }
-
-    private void buildDock() {
-        for (int i = 0; i < dockIcons.length; i++) {
-            String pkg = i < dockPackages.size() ? dockPackages.get(i) : null;
-            AppCatalog.Entry entry = null;
-            if (pkg != null) {
-                for (AppCatalog.Entry candidate : entries) {
-                    if (candidate.packageName.equals(pkg)) {
-                        entry = candidate;
-                        break;
-                    }
-                }
-            }
-            if (entry != null) {
-                dockIcons[i].setIcon(entry.icon);
-                dockIcons[i].setVisibility(View.VISIBLE);
-                dockIcons[i].setContentDescription(entry.label);
-            } else {
-                dockIcons[i].setIcon(null);
-                dockIcons[i].setVisibility(View.INVISIBLE);
-            }
-        }
-    }
-
-    private void rebuildNavigator() {
-        int rows = gridModel == null ? 0 : gridModel.rows();
-        navigator = new Navigator(rows, Grid.COLUMNS, dockPackages.size(), 3);
     }
 
     // ------------------------------------------------------------- reloj
@@ -342,8 +287,8 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
                     openSettings();
                     return true;
                 case KeyEvent.KEYCODE_BACK:
-                    if (inputsPanel.getVisibility() == View.VISIBLE) {
-                        inputsPanel.setVisibility(View.GONE);
+                    if (inputsHolder.view.getVisibility() == View.VISIBLE) {
+                        inputsHolder.view.setVisibility(View.GONE);
                         return true;
                     }
                     break;
@@ -383,8 +328,7 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         if (after.zone != before.zone
                 || after.row != before.row
                 || after.column != before.column
-                || after.topIndex != before.topIndex
-                || after.dockIndex != before.dockIndex) {
+                || after.topIndex != before.topIndex) {
             applyFocus(after);
         }
     }
@@ -396,13 +340,6 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
                 View top = topBarChild(state.topIndex);
                 if (top != null) {
                     top.requestFocus();
-                }
-                break;
-            case DOCK:
-                highlight.setVisibility(View.GONE);
-                if (state.dockIndex < dockIcons.length) {
-                    dockIcons[state.dockIndex].requestFocus();
-                    showDockName(state.dockIndex);
                 }
                 break;
             case GRID:
@@ -530,7 +467,7 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         anchor.getLocationOnScreen(anchorPos);
         ((View) highlight.getParent()).getLocationOnScreen(containerPos);
 
-        int pad = (int) (8 * getResources().getDisplayMetrics().density);
+        int pad = (int) (6 * getResources().getDisplayMetrics().density);
         int left = anchorPos[0] - containerPos[0] - pad;
         int top = anchorPos[1] - containerPos[1] - pad;
         Rect target = new Rect(left, top,
@@ -547,7 +484,7 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
     private void moveGlass(final Rect target) {
         final RectF from = new RectF(highlight.bounds());
         if (from.isEmpty()) {
-            highlight.moveTo(target.left, target.top, target.right, target.bottom, 20f);
+            highlight.moveTo(target.left, target.top, target.right, target.bottom, 26f);
             return;
         }
         highlight.animate().cancel();
@@ -563,80 +500,9 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
             float top = from.top + (target.top - from.top) * t;
             float right = from.right + (target.right - from.right) * t;
             float bottom = from.bottom + (target.bottom - from.bottom) * t;
-            highlight.moveTo(left, top, right, bottom, 20f);
+            highlight.moveTo(left, top, right, bottom, 26f);
         });
         animator.start();
-    }
-
-    private void showDockName(int index) {
-        String pkg = index < dockPackages.size() ? dockPackages.get(index) : null;
-        if (pkg == null) {
-            dockFocusName.setText("");
-            return;
-        }
-        for (AppCatalog.Entry entry : entries) {
-            if (entry.packageName.equals(pkg)) {
-                dockFocusName.setText(entry.label);
-                // Resplandor con el color del icono, aclarado.
-                int color = dominantColor(entry);
-                dockFocusName.setShadowLayer(26f, 0f, 0f, Tint.brighter(color, 1.7f));
-                return;
-            }
-        }
-        dockFocusName.setText("");
-    }
-
-    /**
-     * Nombre que se muestra sobre el dock. Con el foco en la rejilla se
-     * mantiene el ultimo icono del dock que se enfoco.
-     */
-    private void refreshDockName() {
-        int index = navigator != null ? navigator.focus().dockIndex : 0;
-        if (index >= dockPackages.size()) {
-            index = 0;
-        }
-        showDockName(index);
-    }
-
-    /**
-     * Color dominante del icono de una app, para el resplandor.
-     */
-    private int dominantColor(AppCatalog.Entry entry) {
-        if (entry.icon == null) {
-            return 0xFF8E8E93;
-        }
-        try {
-            android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
-                    48, 48, android.graphics.Bitmap.Config.ARGB_8888);
-            android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
-            entry.icon.setBounds(0, 0, 48, 48);
-            entry.icon.draw(canvas);
-
-            long r = 0, g = 0, b = 0;
-            int count = 0;
-            for (int y = 0; y < 48; y += 4) {
-                for (int x = 0; x < 48; x += 4) {
-                    int pixel = bitmap.getPixel(x, y);
-                    if (Tint.alpha(pixel) < 128) {
-                        continue;
-                    }
-                    r += Tint.red(pixel);
-                    g += Tint.green(pixel);
-                    b += Tint.blue(pixel);
-                    count++;
-                }
-            }
-            bitmap.recycle();
-            if (count == 0) {
-                return 0xFF8E8E93;
-            }
-            return (int) (0xFF000000
-                    | ((r / count) << 16)
-                    | ((g / count) << 8)
-                    | (b / count));
-        } catch (Exception e) {
-            return 0xFF8E8E93;
-        }
     }
 
     private void onTopBarFocus(boolean focused, int index) {
@@ -649,11 +515,23 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         updateTopBarFocus(focused);
     }
 
-    /** Las pastillas de la barra crecen un poco al enfocarse. */
+    /** Las pastillas de la barra crecen con un rebote al enfocarse. */
     private void updateTopBarFocus(boolean focused) {
-        float scale = focused ? 1.06f : 1f;
+        float scale = focused ? 1.08f : 1f;
         for (View view : new View[]{btnInputs, btnWifi, btnSettings}) {
-            view.animate().scaleX(scale).scaleY(scale).setDuration(120).start();
+            view.animate().cancel();
+            view.animate()
+                    .scaleX(scale)
+                    .scaleY(scale)
+                    .setDuration(focused ? 220 : 140)
+                    .setInterpolator(new OvershootInterpolator(2.2f))
+                    .start();
+            // Halo luminoso: deja claro donde esta el foco.
+            if (focused) {
+                view.setElevation(12f * getResources().getDisplayMetrics().density);
+            } else {
+                view.setElevation(0f);
+            }
         }
     }
 
@@ -673,26 +551,13 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         }
     }
 
-    private void launchDock(int index) {
-        String pkg = index < dockPackages.size() ? dockPackages.get(index) : null;
-        if (pkg == null) {
-            return;
-        }
-        for (AppCatalog.Entry entry : entries) {
-            if (entry.packageName.equals(pkg)) {
-                AppCatalog.launch(this, entry.component);
-                return;
-            }
-        }
-    }
-
     private void openSettings() {
         try {
             Intent intent = new Intent(Settings.ACTION_SETTINGS);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } catch (Exception e) {
-            // Si falla Ajustes, se intenta el launcher de apps.
+            // Si falla Ajustes, no hay nada mas que hacer.
         }
     }
 
@@ -700,11 +565,11 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
      * Desplegable de entradas bajo la pastilla.
      */
     private void toggleInputs() {
-        if (inputsPanel.getVisibility() == View.VISIBLE) {
-            inputsPanel.setVisibility(View.GONE);
+        if (inputsHolder.view.getVisibility() == View.VISIBLE) {
+            inputsHolder.view.setVisibility(View.GONE);
             return;
         }
-        inputsPanel.removeAllViews();
+        inputsHolder.view.removeAllViews();
         List<String> inputs = availableInputs();
         if (inputs.isEmpty()) {
             addInputRow(getString(R.string.input_none), null);
@@ -713,14 +578,14 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
                 addInputRow(input, input);
             }
         }
-        inputsPanel.setVisibility(View.VISIBLE);
+        inputsHolder.view.setVisibility(View.VISIBLE);
     }
 
     private void addInputRow(String label, final String input) {
         TextView row = new TextView(this);
         row.setText(label);
         row.setTextColor(getResources().getColor(R.color.text_primary));
-        row.setTextSize(18f);
+        row.setTextSize(17f);
         row.setPadding(28, 18, 28, 18);
         row.setFocusable(true);
         row.setFocusableInTouchMode(true);
@@ -728,9 +593,9 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
             if (input != null) {
                 switchInput(input);
             }
-            inputsPanel.setVisibility(View.GONE);
+            inputsHolder.view.setVisibility(View.GONE);
         });
-        inputsPanel.addView(row);
+        inputsHolder.view.addView(row);
     }
 
     /**

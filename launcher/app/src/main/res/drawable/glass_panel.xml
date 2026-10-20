@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Panel translucido del desplegable de entradas. -->
+<!--
+  Panel del desplegable de entradas: cristal oscuro con esquinas muy
+  redondeadas y borde luminoso.
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#D9202020" />
-    <corners android:radius="20dp" />
+    <gradient
+        android:angle="270"
+        android:endColor="#F21A1A1C"
+        android:startColor="#F22A2A2E"
+        android:type="linear" />
+    <corners android:radius="24dp" />
     <stroke
         android:width="1dp"
-        android:color="@color/glass_stroke" />
+        android:color="#40FFFFFF" />
 </shape>

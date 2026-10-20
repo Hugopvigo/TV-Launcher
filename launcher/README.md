@@ -58,48 +58,80 @@ y reinicia.
 `app/src/main/res/values/config.xml`:
 
 ```xml
-<string-array name="dock_packages">
+<string-array name="apps_first">
     <item>com.google.android.youtube.tv</item>
     <item>com.amazon.amazonvideo.livingroom</item>
     <item>com.skyshowtime.skyshowtime.google</item>
     <item>com.wbd.stream</item>
+    <item>com.spotify.tv.android</item>
 </string-array>
+
+<string-array name="apps_last">
+    <item>com.google.android.videos</item>
+</string-array>
+
 <integer name="grid_columns">4</integer>
 ```
 
-El orden es el del dock, de izquierda a derecha. Si una app no está
-instalada, se ignora y el dock tiene menos iconos (no se inventan apps).
+`apps_first` va arriba en ese orden, `apps_last` al final, y el resto
+alfabéticamente en medio. Los paquetes que no estén instalados se ignoran.
 
 ## Qué hace
 
-- Fondo negro, reloj grande y fino arriba a la izquierda con la fecha y el
-  saludo, todo en **Outfit** (OFL, `app/src/main/res/font/`).
-- Pastillas translucidas arriba a la derecha: **Entradas**, **Wi-Fi** y
-  **Ajustes**.
-- Rejilla de 4 columnas con las apps de TV instaladas, en orden alfabético.
-- Un único "cristal" translúcido que salta de tesela en tesela, en vez de un
-  borde por tesela. La tesela enfocada crece y muestra su nombre debajo.
-- Dock con 4 iconos; sobre él, el nombre de la app enfocada en tipo grande
-  con resplandor del color de su icono.
-- Navegación determinista: Up/Down mueven exactamente una fila, Up desde el
-  dock sube a la barra superior, y los extremos de la barra no se caen a las
-  teselas. Se recuerda la última tesela enfocada.
+- Fondo negro con un halo muy suave arriba a la izquierda (degradado radial),
+  reloj grande y fino con la fecha y el saludo, todo en **Outfit** (OFL,
+  `app/src/main/res/font/`).
+- Menús redondeados arriba a la derecha: **Entradas**, **Wi-Fi** y **Ajustes**,
+  con icono. Al enfocarse, la pastilla se ilumina, se agranda con un rebote y
+  levanta sombra: se ve de un vistazo dónde está el foco.
+- Rejilla de 4 columnas a todo el ancho con todas las apps de TV instaladas.
+- Un único "cristal" que salta de tesela en tesela, en vez de un borde por
+  tesela. La tesela enfocada crece con un rebote y muestra su nombre debajo.
+- Navegación determinista: Up/Down mueven exactamente una fila, Up desde la
+  primera fila sube a la barra superior, y los extremos de la barra no se
+  caen a las teselas. Se recuerda la última tesela enfocada.
 
 ## Estructura
 
 | Ruta | Qué es |
 |---|---|
-| `grid/Grid.java` | Rejilla de 4 columnas y selección del dock (testeado) |
+| `grid/Grid.java` | Rejilla de 4 columnas (testeado) |
 | `nav/Navigator.java` | Navegación determinista con D-pad (testeado) |
 | `ui/Clock.java`, `ui/Greeting.java`, `ui/Tint.java` | Reloj, saludo y color (testeados) |
+| `ui/AppOrder.java` | Orden de las apps: prioritarias, resto y últimas (testeado) |
 | `ui/GlassHighlight.java` | El cristal que se mueve entre teselas |
 | `ui/RoundedIcon.java` | Icono con esquinas redondeadas (recorta los banners) |
 | `ui/AppAdapter.java` | Adaptador de la rejilla |
 | `AppCatalog.java` | Lista de apps de TV instaladas |
 | `LauncherActivity.java` | Orquestación, foco y acciones |
 
-Tests: `app/src/test/java/` (29 tests). Se ejecutan con
+Tests: `app/src/test/java/` (32 tests). Se ejecutan con
 `./build.sh testDebugUnitTest`.
+
+## Despertar con el mando
+
+El mando del stick es **Bluetooth**, no infrarrojo. Con el protector de
+pantalla desactivado (`com.google.android.backdrop`, desactivado en el
+debloat), el stick entraba en suspensión profunda, se apagaba el Bluetooth y
+el mando ya no lo despertaba: había que apagar y encender la TV.
+
+Arreglo aplicado en el stick:
+
+```bash
+adb shell settings put secure screensaver_components com.mitv.dream/.MiDream
+adb shell settings put global stay_on_while_plugged_in 7
+adb shell settings put system screen_off_timeout 1800000
+```
+
+- `com.mitv.dream/.MiDream` es el protector de pantalla de Xiaomi, un
+  `DreamService` válido. Con él, el stick entra en modo protector en vez de
+  suspensión, así que el Bluetooth sigue vivo y el mando lo despierta.
+- `stay_on_while_plugged_in 7` lo mantiene despierto mientras está
+  alimentado (el stick se enchufa al TV por USB, `mPlugType=2`).
+- `screen_off_timeout` a 30 minutos.
+
+**Si se cambia de protector de pantalla, hay que volver a apuntar a
+`com.mitv.dream/.MiDream`**, o el mando volverá a no despertar el stick.
 
 ## Detalles del dispositivo
 

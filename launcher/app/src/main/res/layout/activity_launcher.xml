@@ -3,16 +3,14 @@
   Pantalla del launcher.
 
   Estructura vertical:
-    - Barra superior (fija)
-    - Rejilla de 4 columnas (ocupa el espacio libre)
-    - Nombre de la app del dock enfocada
-    - Banda del dock (fija)
+    - Barra superior: saludo, reloj y fecha a la izquierda; menus a la derecha.
+    - Rejilla de 4 columnas con todas las apps, ocupando todo el ancho.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@drawable/launcher_background">
 
 <LinearLayout
     android:layout_width="match_parent"
@@ -25,9 +23,9 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingStart="@dimen/screen_margin"
-        android:paddingTop="28dp"
+        android:paddingTop="34dp"
         android:paddingEnd="@dimen/screen_margin"
-        android:paddingBottom="12dp">
+        android:paddingBottom="18dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -39,7 +37,8 @@
                 android:id="@+id/greeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/outfit_regular"
+                android:fontFamily="@font/outfit_medium"
+                android:letterSpacing="0.02"
                 android:textColor="@color/text_secondary"
                 android:textSize="@dimen/greeting_size"
                 tools:text="Buenas tardes" />
@@ -50,19 +49,20 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/outfit_extralight"
                 android:includeFontPadding="false"
-                android:letterSpacing="-0.03"
+                android:letterSpacing="-0.04"
                 android:textColor="@color/text_primary"
                 android:textSize="@dimen/clock_size"
-                tools:text="18:42" />
+                tools:text="19:42" />
 
             <TextView
                 android:id="@+id/date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:fontFamily="@font/outfit_light"
                 android:textColor="@color/text_tertiary"
                 android:textSize="@dimen/date_size"
-                tools:text="octubre 20" />
+                tools:text="martes, 20 de octubre" />
         </LinearLayout>
 
         <LinearLayout
@@ -75,23 +75,26 @@
             <TextView
                 android:id="@+id/btn_inputs"
                 style="@style/Pill"
+                android:drawableStart="@drawable/ic_inputs"
                 android:text="@string/action_inputs" />
 
             <TextView
                 android:id="@+id/btn_wifi"
                 style="@style/Pill"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="14dp"
+                android:drawableStart="@drawable/ic_wifi"
                 android:text="@string/action_wifi" />
 
             <TextView
                 android:id="@+id/btn_settings"
                 style="@style/Pill"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="14dp"
+                android:drawableStart="@drawable/ic_settings"
                 android:text="@string/action_settings" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- ============ Rejilla ============ -->
+    <!-- ============ Rejilla: todas las apps, a todo el ancho ============ -->
     <FrameLayout
         android:id="@+id/grid_container"
         android:layout_width="match_parent"
@@ -103,57 +106,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingStart="@dimen/screen_margin"
-            android:paddingEnd="@dimen/screen_margin"
+            android:paddingStart="@dimen/grid_margin"
+            android:paddingEnd="@dimen/grid_margin"
+            android:paddingBottom="@dimen/grid_margin"
             android:scrollbars="none" />
-    </FrameLayout>
-
-    <!-- ============ Nombre de la app del dock enfocada ============ -->
-    <TextView
-        android:id="@+id/dock_focus_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/outfit_light"
-        android:gravity="center"
-        android:paddingBottom="14dp"
-        android:textColor="@color/text_primary"
-        android:textSize="@dimen/focused_name_size"
-        tools:text="YouTube" />
-
-    <!-- ============ Banda del dock ============ -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/dock_height"
-        android:background="@drawable/dock_band">
-
-        <LinearLayout
-            android:id="@+id/dock"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <com.suop.tvlauncher.ui.RoundedIcon
-                android:id="@+id/dock_0"
-                style="@style/DockIcon"
-                tools:src="@mipmap/ic_launcher" />
-
-            <com.suop.tvlauncher.ui.RoundedIcon
-                android:id="@+id/dock_1"
-                style="@style/DockIcon"
-                tools:src="@mipmap/ic_launcher" />
-
-            <com.suop.tvlauncher.ui.RoundedIcon
-                android:id="@+id/dock_2"
-                style="@style/DockIcon"
-                tools:src="@mipmap/ic_launcher" />
-
-            <com.suop.tvlauncher.ui.RoundedIcon
-                android:id="@+id/dock_3"
-                style="@style/DockIcon"
-                tools:src="@mipmap/ic_launcher" />
-        </LinearLayout>
     </FrameLayout>
 
 </LinearLayout>
@@ -164,11 +120,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
-        android:layout_marginTop="84dp"
+        android:layout_marginTop="96dp"
         android:layout_marginEnd="@dimen/screen_margin"
         android:background="@drawable/glass_panel"
         android:orientation="vertical"
-        android:padding="10dp"
+        android:padding="8dp"
         android:visibility="gone"
         tools:visibility="gone" />
 

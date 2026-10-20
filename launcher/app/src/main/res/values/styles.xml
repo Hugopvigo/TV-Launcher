@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Pastilla translucida de la barra superior -->
+    <!--
+      Pastilla de la barra superior: cristal redondeado, con icono y texto.
+      El fondo se dibuja en el propio control para que el degradado quede
+      bien centrado con la altura variable.
+    -->
     <style name="Pill">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">@dimen/pill_height</item>
         <item name="android:background">@drawable/pill_background</item>
+        <item name="android:drawablePadding">10dp</item>
         <item name="android:fontFamily">@font/outfit_medium</item>
-        <item name="android:gravity">center</item>
-        <item name="android:paddingStart">18dp</item>
-        <item name="android:paddingEnd">18dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">@dimen/pill_text_size</item>
-        <item name="android:focusable">true</item>
-        <item name="android:focusableInTouchMode">true</item>
-    </style>
-
-    <!-- Icono del dock: cuadrado redondeado, con separacion fija -->
-    <style name="DockIcon">
-        <item name="android:layout_width">@dimen/dock_icon_size</item>
-        <item name="android:layout_height">@dimen/dock_icon_size</item>
-        <item name="android:layout_marginStart">@dimen/dock_gap</item>
-        <item name="android:layout_marginEnd">@dimen/dock_gap</item>
         <item name="android:focusable">true</item>
         <item name="android:focusableInTouchMode">true</item>
     </style>

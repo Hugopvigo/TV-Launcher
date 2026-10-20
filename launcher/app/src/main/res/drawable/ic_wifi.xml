@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono de Wi-Fi: ondas. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFF5F5F7">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,21l-1.5,-1.5c0.83,-0.83 2.17,-0.83 3,0L12,21z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,3C7.95,3 4.21,4.34 1.2,6.6l1.6,1.8C5.45,6.36 8.6,5.2 12,5.2c3.4,0 6.55,1.16 9.2,3.2l1.6,-1.8C19.79,4.34 16.05,3 12,3z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,9c-2.76,0 -5.26,1.12 -7.07,2.93l1.6,1.6C7.74,12.7 9.77,12 12,12s4.26,0.74 5.47,1.53l1.6,-1.6C17.26,10.12 14.76,9 12,9z" />
+</vector>

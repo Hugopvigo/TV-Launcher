@@ -57,6 +57,7 @@ public class UiTest {
         String s = Clock.formatDate(c, new Locale("es", "ES"));
         assertTrue("Deberia contener el dia 20: " + s, s.contains("20"));
         assertTrue("Deberia contener octubre: " + s, s.toLowerCase(Locale.getDefault()).contains("octubre"));
+        assertTrue("Deberia contener el dia de la semana: " + s, s.contains("martes"));
     }
 
     @Test
