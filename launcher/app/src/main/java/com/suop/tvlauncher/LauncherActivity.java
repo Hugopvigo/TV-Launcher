@@ -458,7 +458,8 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
             return;
         }
         // El cristal rodea al icono, no a la celda entera: la etiqueta queda
-        // fuera del cristal.
+        // fuera del cristal. El icono ya crece dentro de sus propios limites,
+        // asi que el cristal lo sigue sin salirse de la celda.
         View icon = tile.findViewById(R.id.icon);
         View anchor = icon != null ? icon : tile;
 
@@ -467,12 +468,10 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         anchor.getLocationOnScreen(anchorPos);
         ((View) highlight.getParent()).getLocationOnScreen(containerPos);
 
-        int pad = (int) (6 * getResources().getDisplayMetrics().density);
-        int left = anchorPos[0] - containerPos[0] - pad;
-        int top = anchorPos[1] - containerPos[1] - pad;
+        int left = anchorPos[0] - containerPos[0];
+        int top = anchorPos[1] - containerPos[1];
         Rect target = new Rect(left, top,
-                left + anchor.getWidth() + pad * 2,
-                top + anchor.getHeight() + pad * 2);
+                left + anchor.getWidth(), top + anchor.getHeight());
 
         highlight.setVisibility(View.VISIBLE);
         moveGlass(target);
@@ -517,21 +516,15 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
 
     /** Las pastillas de la barra crecen con un rebote al enfocarse. */
     private void updateTopBarFocus(boolean focused) {
-        float scale = focused ? 1.08f : 1f;
+        float scale = focused ? 1.05f : 1f;
         for (View view : new View[]{btnInputs, btnWifi, btnSettings}) {
             view.animate().cancel();
             view.animate()
                     .scaleX(scale)
                     .scaleY(scale)
-                    .setDuration(focused ? 220 : 140)
+                    .setDuration(focused ? 200 : 140)
                     .setInterpolator(new OvershootInterpolator(2.2f))
                     .start();
-            // Halo luminoso: deja claro donde esta el foco.
-            if (focused) {
-                view.setElevation(12f * getResources().getDisplayMetrics().density);
-            } else {
-                view.setElevation(0f);
-            }
         }
     }
 

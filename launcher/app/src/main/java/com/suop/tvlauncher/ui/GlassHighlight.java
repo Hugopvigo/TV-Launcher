@@ -74,8 +74,10 @@ public class GlassHighlight extends View {
         if (rect.isEmpty()) {
             return;
         }
+        // El halo se dibuja un poco mas grande que el icono, con degradado
+        // hacia fuera: asi no queda un corte recto alrededor de la tesela.
         canvas.drawCircle(rect.centerX(), rect.centerY(),
-                Math.max(rect.width(), rect.height()) * 0.62f, glow);
+                Math.max(rect.width(), rect.height()) * 0.78f, glow);
         canvas.drawRoundRect(rect, radius, radius, fill);
     }
 }

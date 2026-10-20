@@ -62,8 +62,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         holder.label.setText(entry.label);
         // El nombre solo se ve en la tesela enfocada.
         holder.label.setAlpha(0f);
-        holder.icon.setScaleX(1f);
-        holder.icon.setScaleY(1f);
+        holder.icon.setFocused(false);
         holder.itemView.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 setFocused(v);
@@ -89,22 +88,17 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     }
 
     /**
-     * Marca una tesela como enfocada: crece un poco y muestra su nombre.
+     * Marca una tesela como enfocada: el icono crece *dentro* de sus limites
+     * (si se escalase la vista, se saldria de la celda) y muestra su nombre.
      */
     void setFocused(View tile) {
         if (tile == null) {
             return;
         }
-        View icon = tile.findViewById(R.id.icon);
+        RoundedIcon icon = tile.findViewById(R.id.icon);
         View label = tile.findViewById(R.id.label);
         if (icon != null) {
-            icon.animate().cancel();
-            icon.animate()
-                    .scaleX(1.1f)
-                    .scaleY(1.1f)
-                    .setDuration(200)
-                    .setInterpolator(new android.view.animation.OvershootInterpolator(1.6f))
-                    .start();
+            icon.setFocused(true);
         }
         if (label != null) {
             label.animate().cancel();
@@ -117,11 +111,10 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         if (tile == null) {
             return;
         }
-        View icon = tile.findViewById(R.id.icon);
+        RoundedIcon icon = tile.findViewById(R.id.icon);
         View label = tile.findViewById(R.id.label);
         if (icon != null) {
-            icon.animate().cancel();
-            icon.animate().scaleX(1f).scaleY(1f).setDuration(160).start();
+            icon.setFocused(false);
         }
         if (label != null) {
             label.animate().cancel();
