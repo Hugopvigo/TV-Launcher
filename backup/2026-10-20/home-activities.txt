@@ -1,0 +1,62 @@
+2 activities found:
+  Activity #0:
+    priority=2 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    ActivityInfo:
+      name=com.google.android.tvlauncher.MainActivity
+      packageName=com.google.android.tvlauncher
+      enabled=true exported=true directBootAware=false
+      taskAffinity=.TvLauncher targetActivity=null persistableMode=PERSIST_ROOT_ONLY
+      launchMode=2 flags=0x4230 theme=0x0
+      screenOrientation=0 configChanges=0x13 softInputMode=0x0
+      lockTaskLaunchMode=LOCK_TASK_LAUNCH_MODE_DEFAULT
+      resizeMode=RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION
+      ApplicationInfo:
+        name=com.google.android.tvlauncher.application.TvLauncherApplication
+        packageName=com.google.android.tvlauncher
+        labelRes=0x7f130055 nonLocalizedLabel=null icon=0x7f100000 banner=0x7f080247
+        className=com.google.android.tvlauncher.application.TvLauncherApplication
+        processName=com.google.android.tvlauncher
+        taskAffinity=com.google.android.tvlauncher
+        uid=10018 flags=0x38c83ec5 privateFlags=0x1118 theme=0x7f140010
+        requiresSmallestWidthDp=0 compatibleWidthLimitDp=0 largestWidthLimitDp=0
+        sourceDir=/data/app/com.google.android.tvlauncher-rJcYiOLC8M6a-mCQEkxMAA==/base.apk
+        splitSourceDirs=[/data/app/com.google.android.tvlauncher-rJcYiOLC8M6a-mCQEkxMAA==/split_config.es.apk, /data/app/com.google.android.tvlauncher-rJcYiOLC8M6a-mCQEkxMAA==/split_config.xhdpi.apk]
+        seinfo=default:privapp:targetSdkVersion=36
+        seinfoUser=:complete
+        dataDir=/data/user/0/com.google.android.tvlauncher
+        deviceProtectedDataDir=/data/user_de/0/com.google.android.tvlauncher
+        credentialProtectedDataDir=/data/user/0/com.google.android.tvlauncher
+        splitClassLoaderNames=[null, null]
+        enabled=true minSdkVersion=26 targetSdkVersion=36 versionCode=1010941929 targetSandboxVersion=1
+        supportsRtl=true
+        fullBackupContent=true
+        category=7
+        HiddenApiEnforcementPolicy=2
+  Activity #1:
+    priority=-1000 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    ActivityInfo:
+      name=com.android.tv.settings.system.FallbackHome
+      packageName=com.android.tv.settings
+      enabled=true exported=true directBootAware=true
+      taskAffinity=com.android.tv.settings targetActivity=null persistableMode=PERSIST_ROOT_ONLY
+      launchMode=0 flags=0x220 theme=0x7f1000b4
+      screenOrientation=-1 configChanges=0x40002ff7 softInputMode=0x0
+      lockTaskLaunchMode=LOCK_TASK_LAUNCH_MODE_DEFAULT
+      resizeMode=RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION
+      ApplicationInfo:
+        packageName=com.android.tv.settings
+        labelRes=0x7f0f0321 nonLocalizedLabel=null icon=0x7f080103 banner=0x7f080092
+        processName=com.android.tv.settings
+        taskAffinity=com.android.tv.settings
+        uid=1000 flags=0x38c8be45 privateFlags=0x101068 theme=0x7f1001a0
+        requiresSmallestWidthDp=0 compatibleWidthLimitDp=0 largestWidthLimitDp=0
+        sourceDir=/system/priv-app/TvSettings/TvSettings.apk
+        seinfo=platform:privapp:targetSdkVersion=26
+        seinfoUser=:complete
+        dataDir=/data/user_de/0/com.android.tv.settings
+        deviceProtectedDataDir=/data/user_de/0/com.android.tv.settings
+        credentialProtectedDataDir=/data/user/0/com.android.tv.settings
+        enabled=true minSdkVersion=23 targetSdkVersion=28 versionCode=1 targetSandboxVersion=1
+        supportsRtl=true
+        fullBackupContent=true
+        HiddenApiEnforcementPolicy=0

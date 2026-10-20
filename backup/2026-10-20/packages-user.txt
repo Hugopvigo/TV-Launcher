@@ -1,0 +1,11 @@
+package:tv.accedo.mitele_xdk
+package:com.skyshowtime.skyshowtime.google
+package:com.plexapp.android
+package:com.spotify.tv.android
+package:com.wbd.stream
+package:tv.twitch.android.app
+package:com.mitv.tvhome.mitvplus
+package:dw.com.androidtv.live
+package:com.rt.tv
+package:com.antena3.atresplayer.tv
+package:com.disney.disneyplus
