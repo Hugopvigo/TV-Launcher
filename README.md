@@ -34,6 +34,12 @@ Todo es **reversible**: no se toca la partición de firmware ni el bootloader.
 
 > 📄 **[Informe completo → `docs/INFORME.md`](docs/INFORME.md)** — qué se
 > desactivó y por qué, qué se probó y falló, y lo aprendido del dispositivo.
+>
+> 🔧 **[Guía de debloat → `docs/GUIA-DEBLOAT.md`](docs/GUIA-DEBLOAT.md)** — cómo
+> aplicarlo paso a paso, y a otro Xiaomi.
+>
+> 🤖 **[PROMPT.md](PROMPT.md)** — para que un asistente con shell lo repita solo
+> en otra tele.
 
 ## Descargar
 
@@ -121,20 +127,24 @@ revierte con `pm enable`.
 cd launcher && ./tools/uninstall-launcher.sh   # devuelve el launcher de fábrica
 ```
 
-Detalle de qué se puede y qué no se puede revertir (y por qué el
-`pm uninstall` borra el APK de forma asíncrona) en el
-[informe](docs/INFORME.md#32-apps-desinstaladas-7).
+La lista de debloat está en [`tools/disabled.list`](tools/disabled.list),
+comentada por categorías y con el motivo de cada paquete. Detalle de qué se
+puede y qué no se puede revertir (y por qué el `pm uninstall` borra el APK de
+forma asíncrona) en el [informe](docs/INFORME.md#32-apps-desinstaladas-7).
 
 ## Repositorio
 
 ```
 firestick-debloat/
-├── docs/INFORME.md      informe completo
-├── docs/capturas/       capturas de referencia
-├── dist/                APK firmado + checksum
-├── launcher/            código fuente del launcher (Java, 32 tests)
-├── tools/               backup, restore, disable, sanitizado, cabecera
-└── backup/2026-10-20/   estado original del dispositivo
+├── PROMPT.md             prompt para repetirlo en otra tele
+├── docs/INFORME.md       informe completo
+├── docs/GUIA-DEBLOAT.md  guía paso a paso
+├── docs/PLAN.md          plan del debloat por lotes
+├── docs/capturas/        capturas de referencia
+├── dist/                 APK firmado + checksum
+├── launcher/             código fuente del launcher (Java, 32 tests)
+├── tools/                backup, apply, disable, restore, check, cabecera
+└── backup/2026-10-20/    estado original del dispositivo
 ```
 
 ## Licencia

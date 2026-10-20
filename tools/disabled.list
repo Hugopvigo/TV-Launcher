@@ -1,27 +1,109 @@
-com.mitv.tvhome.mitvplus
-com.mitv.tvhome.atv
-com.mitv.tvhome.michannel
-com.xm.webcontent
-com.xiaomo.tv.milegal
-com.miui.tv.analytics
-com.mitv.download.service
-com.mitv.videoplayer
-com.mitv.milinkservice
-android.autoinstalls.config.xioami.mibox3
-tv.alphonso.alphonso_eula
-com.google.android.tvrecommendations
-com.google.android.backdrop
-com.google.android.feedback
-com.google.android.tv.bugreportsender
-com.google.android.partnersetup
+# Debloat del Xiaomi Mi TV Stick — MiTV-AESP0 (codename aquaman)
+# Android 9 / API 28 · Google TV · firmware PI.2055 (build 22.9.6.2055) · 1 GB de RAM
+#
+# Aplicar:  ./tools/disable.sh tools/disabled.list
+# Revertir: ./tools/restore.sh
+#
+# Formato: un paquete por linea. Los comentarios (#) y las lineas vacias se
+# ignoran. Un prefijo ! marca un paquete que se DESINSTALA en vez de
+# desactivarse: solo para apps de usuario, y es la unica forma de liberar
+# disco de verdad.
+#
+# Nada se borra del sistema al desactivar. Las apps de usuario desinstaladas
+# se pueden recuperar con pm install-existing (si su APK sigue en /data/app)
+# o reinstalandolas desde Play Store.
+#
+# ---------------------------------------------------------------------------
+# Xiaomi: telemetria y analitica
+# ---------------------------------------------------------------------------
+com.miui.tv.analytics                 # analitica de Xiaomi
+com.xiaomo.tv.milegal                  # avisos legales de Xiaomi
+tv.alphonso.alphonso_eula             # EULA de Alphonso: telemetria de TV
+
+# ---------------------------------------------------------------------------
+# Xiaomi: contenido preinstalado, promociones y Recommendation rows
+# ---------------------------------------------------------------------------
+com.mitv.tvhome.atv                   # Mi TV Home (PatchWall)
+com.mitv.tvhome.michannel              # Mi Channel
+com.mitv.tvhome.mitvplus               # Mi TV Plus
+com.xm.webcontent                      # contenido web de Xiaomi
+com.google.android.tvrecommendations   # filas de recomendaciones y "Patrocinado"
+
+# ---------------------------------------------------------------------------
+# Xiaomi: servicios en segundo plano
+# ---------------------------------------------------------------------------
+com.mitv.download.service              # descargas de contenido (ademas crasheaba solo)
+com.mitv.videoplayer                   # reproductor de video de Xiaomi
+com.mitv.milinkservice                 # Mi Link (mando desde el movil)
+com.xiaomi.android.tvsetup.partnercustomizer   # asistente de configuracion de Xiaomi
+android.autoinstalls.config.xioami.mibox3      # Auto Install Config: Play Store autoinstala apps
+
+# ---------------------------------------------------------------------------
+# Google: telemetria, sincronizacion y el asistente de voz
+# ---------------------------------------------------------------------------
+com.google.android.feedback            # envio de feedback
+com.google.android.tv.bugreportsender  # informes de error
+com.google.android.partnersetup        # atribucion a partners
 com.google.android.syncadapters.contacts
 com.google.android.syncadapters.calendar
-com.xiaomi.android.tvsetup.partnercustomizer
-com.google.android.katniss
-com.google.android.speech.pumpkin
-com.netflix.ninja
-com.disney.disneyplus
-tv.accedo.mitele_xdk
-com.antena3.atresplayer.tv
-dw.com.androidtv.live
-com.rt.tv
+com.google.android.katniss             # Asistente de Google (voz)
+com.google.android.speech.pumpkin      # reconocimiento de voz
+com.google.android.backdrop            # fondo ambiental: ver la nota de abajo
+
+# ---------------------------------------------------------------------------
+# Google TV: el launcher de fabrica y su recomendador
+# ---------------------------------------------------------------------------
+# com.google.android.tvlauncher         # NO se desactiva aqui: ver la nota de abajo
+
+# ---------------------------------------------------------------------------
+# Apps de usuario que no usabas: se DESINSTALAN (liberan disco)
+# ---------------------------------------------------------------------------
+!com.netflix.ninja                     # Netflix, 42 MB
+!com.disney.disneyplus                 # Disney+, 23 MB
+!com.antena3.atresplayer.tv            # Atresplayer, 23 MB
+!com.rt.tv                             # RT.es, 11 MB
+!tv.accedo.mitele_xdk                  # MiTele, 8 MB
+!dw.com.androidtv.live                # DW, 2 MB
+!com.overdevs.at4k                     # se autoinstalo sola durante la sesion
+
+# ---------------------------------------------------------------------------
+# NOTAS DE ESTE MODELO (leidas de su propio comportamiento, no de la teoria)
+# ---------------------------------------------------------------------------
+#
+# 1. com.google.android.tvlauncher NO se desactiva con esta lista.
+#    El launcher de Google TV se relanza a si mismo desde mitv.service, que
+#    corre como uid 1000 y es PERSISTENT, asi que ignora el disable. Se
+#    desactiva DESPUES, con el launcher propio ya instalado y puesto como
+#    inicio:
+#        pm disable-user --user 0 com.google.android.tvlauncher
+#    y se devuelve con:
+#        pm enable --user 0 com.google.android.tvlauncher
+#
+# 2. com.google.android.backdrop: el fondo ambiental. Es el protector de
+#    pantalla que tiene configurado el sistema, y el stick DUERME con el
+#    protector en vez de suspender. Al desactivarlo, el stick entra en
+#    suspension profunda, se apaga el Bluetooth (el mando es BT, no IR) y el
+#    mando deja de despertarlo. Si se desactiva, hay que apuntar el
+#    protector al de Xiaomi:
+#        settings put secure screensaver_components com.mitv.dream/.MiDream
+#    Este stick lo tiene ya resuelto, pero en otro Xiaomi puede hacer falta.
+#
+# 3. com.google.android.tungsten.setupwraith NO aparece en la lista, y es
+#    a proposito. La red Wi-Fi de la primera configuracion es suya
+#    (dumpsys wifi | grep -o 'cname=[^ ]*'), y desactivarla borra esa red y
+#    deja el stick sin Wi-Fi (y sin ADB) a mitad del trabajo. Si en otro
+#    dispositivo hay que desactivarlo, primero hay que olvidar la red en
+#    Ajustes y volver a unirse.
+#
+# 4. NO se toca com.mitv.service: tiene el permiso HDMI_CEC y gestiona el
+#    apagado del televisor. Ni com.android.tv.settings (entrada HDMI y
+#    pairing del mando), ni Play Services, ni Play Store, ni el teclado.
+#
+# 5. com.mitv.dream y com.mitv.service son PERSISTENT: Android ignora el
+#    disable y pm disable a nivel de componente esta bloqueado por
+#    seguridad. Sin root no se pueden parar. Ocupan unos 50 MB de RAM.
+#
+# 6. La fila "Mi Channel" del launcher de Google TV NO viene de ningun
+#    paquete desactivable: se comprobó desactivando mitv.service y
+#    com.google.android.tv y la fila seguia ahi. Con el launcher propio
+#    desaparece de la pantalla, pero el servicio sigue detras.

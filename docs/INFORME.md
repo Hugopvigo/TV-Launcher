@@ -36,14 +36,25 @@ y recomendaciones.*
 
 ## 2. Qué hay en este repositorio
 
+| Documento | Para qué |
+|---|---|
+| **Este informe** | Qué se hizo, por qué, y qué se probó y falló |
+| [`GUIA-DEBLOAT.md`](GUIA-DEBLOAT.md) | Cómo aplicarlo paso a paso, a esta tele o a otra |
+| [`../PROMPT.md`](../PROMPT.md) | Para que un asistente con shell lo repita solo en otra tele |
+| [`PLAN.md`](PLAN.md) | El plan por lotes tal como se ejecutó |
+
 ```
 firestick-debloat/
 ├── README.md                  ← este documento
+├── PROMPT.md                  prompt para repetirlo en otra tele
 ├── docs/
+│   ├── INFORME.md             ← informe completo
+│   ├── GUIA-DEBLOAT.md        ← guía paso a paso
 │   ├── PLAN.md                ← plan del debloat con los lotes y sus motivos
+│   ├── canvas/                ← filosofía de la imagen de cabecera
 │   └── capturas/              ← capturas de referencia
 ├── dist/
-│   ├── tvlauncher-1.0-release.apk       ← el launcher ya compilado y firmado
+│   ├── tvlauncher-1.0-release.apk        ← el launcher ya compilado y firmado
 │   └── tvlauncher-1.0-release.apk.sha256
 ├── launcher/                  ← código fuente del launcher
 │   ├── README.md              ← detalles técnicos del launcher
@@ -51,12 +62,18 @@ firestick-debloat/
 │   ├── app/src/test/…         ← 32 tests unitarios
 │   ├── build.sh / build.bat   ← compilación
 │   └── tools/                 ← instalar, desinstalar, comprobar
-├── tools/                     ← scripts del debloat (backup, restore, disable…)
-├── backup/2026-10-20/         ← estado original del dispositivo
-│   ├── packages-full.txt      ← los 99 paquetes que había
-│   ├── getprop.txt            ← propiedades del sistema
-│   └── settings-*.txt         ← todos los ajustes
-└── .gitignore
+├── tools/                     ← scripts del debloat
+│   ├── apply-debloat.sh       ← aplica todo en lotes, con backup y verificación
+│   ├── disable.sh             ← aplica una lista
+│   ├── restore.sh             ← lo revierte
+│   ├── disabled.list          ← la lista de debloat, comentada por categorías
+│   ├── backup.sh / check.sh / shot.sh
+│   ├── sanitize-for-public.sh ← limpia identificadores antes de publicar
+│   └── make-hero.py           ← genera la imagen de cabecera
+└── backup/2026-10-20/         ← estado original del dispositivo
+    ├── packages-full.txt      ← los 99 paquetes que había
+    ├── getprop.txt            ← propiedades del sistema
+    └── settings-*.txt         ← todos los ajustes
 ```
 
 ### El APK
@@ -83,6 +100,19 @@ habilitado, el sistema lo relanza y se pone delante del nuestro (ver §6).
 ---
 
 ## 3. El debloat
+
+La lista completa está en [`tools/disabled.list`](../tools/disabled.list), una
+línea por paquete, comentada por categorías y con el motivo de cada uno. El
+prefijo `!` marca las que se **desinstalan** en vez de desactivarse.
+
+Para aplicarla:
+
+```bash
+./tools/apply-debloat.sh     # backup + lotes + verificación
+```
+
+La guía paso a paso, con los comandos a mano y qué hacer si algo falla, está
+en [`GUIA-DEBLOAT.md`](GUIA-DEBLOAT.md).
 
 ### 3.1 Paquetes desactivados (21)
 
@@ -322,7 +352,8 @@ cd firestick-debloat
 
 Reactiva los 21 paquetes desactivados y reinstala las 7 desinstaladas (las
 que aún tengan el APK en disco; el script avisa del caso). La fuente de verdad
-son `tools/disabled.list` y `tools/uninstalled.list`.
+son `tools/disabled.list`: una lista por línea, comentada por categorías, con
+prefijo `!` en las que se desinstalan en vez de desactivarse.
 
 Para rehacer el backup del estado actual:
 

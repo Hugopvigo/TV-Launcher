@@ -9,7 +9,7 @@ Google TV intacto y todo reversible.
 
 **Arquitectura:** Scripts bash en `tools/` que hablan con el stick por ADB
 (`tools/env.sh` centraliza la conexión). Nada se desinstala: todo se desactiva
-con `pm disable-user --user 0`, y un único fichero `tools/disabled.list` es la
+con `pm disable-user --user 0`, y un único fichero `tools/disabled.list` (comentado, con prefijo `!` para las que se desinstalan) es la
 fuente de verdad de lo desactivado, que consume `tools/restore.sh`.
 
 **Stack:** bash + `adb` (platform-tools 37.0.1) + `pm`/`dumpsys` de Android 9.
@@ -77,7 +77,7 @@ launcher propio — decisión del usuario).
 ## Tareas transversales
 
 - [ ] `tools/backup.sh` — snapshot de paquetes, getprop y settings.
-- [ ] `tools/restore.sh` — reactiva lo que haya en `tools/disabled.list`.
+- [x] `tools/restore.sh` — reactiva lo que haya en `tools/disabled.list`.
 - [ ] `tools/shot.sh` — captura de pantalla al stick.
 - [ ] `README.md` — cómo revertir, qué se tocó y por qué.
 
