@@ -82,14 +82,23 @@ alfabéticamente en medio. Los paquetes que no estén instalados se ignoran.
   reloj grande y fino con la fecha y el saludo, todo en **Outfit** (OFL,
   `app/src/main/res/font/`).
 - Menús redondeados arriba a la derecha: **Entradas**, **Wi-Fi** y **Ajustes**,
-  con icono. Al enfocarse, la pastilla se ilumina, se agranda con un rebote y
-  levanta sombra: se ve de un vistazo dónde está el foco.
+  con icono. Al enfocarse, la pastilla se ilumina y se agranda con un rebote:
+  se ve de un vistazo dónde está el foco.
 - Rejilla de 4 columnas a todo el ancho con todas las apps de TV instaladas.
 - Un único "cristal" que salta de tesela en tesela, en vez de un borde por
-  tesela. La tesela enfocada crece con un rebote y muestra su nombre debajo.
+  tesela. La tesela enfocada crece y muestra su nombre debajo.
 - Navegación determinista: Up/Down mueven exactamente una fila, Up desde la
   primera fila sube a la barra superior, y los extremos de la barra no se
   caen a las teselas. Se recuerda la última tesela enfocada.
+
+### Detalles de acabado
+
+- **El icono crece dentro de sus límites**, no escalando la vista. Si se
+  escalase la vista, al enfocarse se saldría de su celda en la rejilla y
+  quedaría cortado. `RoundedIcon` dibuja el icono al 84% y, enfocado, al
+  100%, ajustando el radio de las esquinas para que nada quede recortado.
+- **Los menús no llevan reborde**: el estado enfocado se distingue solo por
+  el relleno más claro.
 
 ## Estructura
 
