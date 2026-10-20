@@ -2,7 +2,7 @@
 # Comprueba que el launcher funciona: apps, dock, navegacion y arranque.
 export PATH="/tmp/opencode/pt/platform-tools:/usr/bin:/bin"
 A=(adb -s 192.168.3.124:5555)
-PKG=com.suop.tvlauncher
+PKG=es.hugoperezvigo.tvlauncher
 SHOTS="$(cd "$(dirname "$0")/.." && pwd)/../backup/2026-10-20/screenshots"
 
 echo "== 1. HOME por defecto =="

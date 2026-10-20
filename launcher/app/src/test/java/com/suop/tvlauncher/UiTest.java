@@ -1,11 +1,11 @@
-package com.suop.tvlauncher;
+package es.hugoperezvigo.tvlauncher;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.suop.tvlauncher.ui.Clock;
-import com.suop.tvlauncher.ui.Greeting;
-import com.suop.tvlauncher.ui.Tint;
+import es.hugoperezvigo.tvlauncher.ui.Clock;
+import es.hugoperezvigo.tvlauncher.ui.Greeting;
+import es.hugoperezvigo.tvlauncher.ui.Tint;
 import org.junit.Test;
 
 import java.util.Calendar;

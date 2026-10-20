@@ -15,7 +15,7 @@
     android:paddingTop="@dimen/tile_padding_vertical"
     android:paddingBottom="@dimen/tile_padding_vertical">
 
-    <com.suop.tvlauncher.ui.RoundedIcon
+    <es.hugoperezvigo.tvlauncher.ui.RoundedIcon
         android:id="@+id/icon"
         android:layout_width="@dimen/tile_size"
         android:layout_height="@dimen/tile_size"

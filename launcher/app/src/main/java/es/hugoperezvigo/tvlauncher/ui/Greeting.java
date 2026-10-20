@@ -1,4 +1,4 @@
-package com.suop.tvlauncher.ui;
+package es.hugoperezvigo.tvlauncher.ui;
 
 /**
  * Saludo segun la hora del dia.

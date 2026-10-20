@@ -2,18 +2,51 @@ plugins {
     id 'com.android.application'
 }
 
+// Firma de release.
+// El keystore y las contrasenas NO estan en el repo. Se buscan en:
+//   - la variable de entorno TVLAUNCHER_SIGNING_DIR
+//   - ~/.config/suop/ (WSL) y C:/Users/<usuario>/.config/suop/ (Windows)
+// Si no se encuentran, el build de release sale sin firmar y el de debug
+// sigue funcionando.
+def signingDirs = [
+        System.getenv('TVLAUNCHER_SIGNING_DIR'),
+        '/home/hugo/.config/suop',
+        'C:/Users/Hugop/.config/suop',
+].findAll { it }
+
+def signingDir = signingDirs.find { dir ->
+    new File(dir, 'tvlauncher-release.jks').exists() &&
+            new File(dir, 'tvlauncher-release.password').exists()
+}
+def keystoreFile = signingDir ? new File(signingDir, 'tvlauncher-release.jks') : null
+def passwordsFile = signingDir ? new File(signingDir, 'tvlauncher-release.password') : null
+def hasSigning = signingDir != null
+
 android {
-    namespace 'com.suop.tvlauncher'
+    namespace 'es.hugoperezvigo.tvlauncher'
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.suop.tvlauncher"
+        applicationId "es.hugoperezvigo.tvlauncher"
         // minSdk 21: el Mi TV Stick es Android 9 (API 28), pero asi
         // el launcher tambien sirve en sticks y-carbox Android mas viejos.
         minSdk 21
         targetSdk 34
         versionCode 1
         versionName "1.0"
+    }
+
+    signingConfigs {
+        if (hasSigning) {
+            release {
+                storeFile keystoreFile
+                def props = new Properties()
+                passwordsFile.withInputStream { props.load(it) }
+                storePassword props.getProperty('TVLAUNCHER_STORE_PASSWORD')
+                keyAlias 'tvlauncher'
+                keyPassword props.getProperty('TVLAUNCHER_KEY_PASSWORD')
+            }
+        }
     }
 
     buildTypes {
@@ -24,6 +57,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 

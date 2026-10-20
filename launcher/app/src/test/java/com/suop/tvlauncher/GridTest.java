@@ -1,10 +1,10 @@
-package com.suop.tvlauncher;
+package es.hugoperezvigo.tvlauncher;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.suop.tvlauncher.grid.Grid;
-import com.suop.tvlauncher.grid.GridItem;
+import es.hugoperezvigo.tvlauncher.grid.Grid;
+import es.hugoperezvigo.tvlauncher.grid.GridItem;
 import org.junit.Test;
 
 import java.util.Arrays;

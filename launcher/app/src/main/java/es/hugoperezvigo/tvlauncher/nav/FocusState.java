@@ -1,4 +1,4 @@
-package com.suop.tvlauncher.nav;
+package es.hugoperezvigo.tvlauncher.nav;
 
 /**
  * Donde esta el foco: barra superior o rejilla.

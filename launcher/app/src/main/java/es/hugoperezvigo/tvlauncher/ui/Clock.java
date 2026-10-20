@@ -1,4 +1,4 @@
-package com.suop.tvlauncher.ui;
+package es.hugoperezvigo.tvlauncher.ui;
 
 import java.util.Calendar;
 import java.util.Locale;

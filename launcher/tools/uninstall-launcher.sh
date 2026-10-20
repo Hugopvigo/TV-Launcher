@@ -13,7 +13,7 @@ echo "== 2. reactivo el launcher de Google TV =="
 
 echo
 echo "== 3. desinstalo mi launcher =="
-"${A[@]}" shell "pm uninstall com.suop.tvlauncher" 2>&1 | tr -d '\r'
+"${A[@]}" shell "pm uninstall es.hugoperezvigo.tvlauncher" 2>&1 | tr -d '\r'
 
 echo
 echo "== 4. reinicio y compruebo =="
@@ -28,4 +28,4 @@ done
 sleep 40
 "${A[@]}" shell "dumpsys activity activities | grep -E 'topResumedActivity'" | head -2 | tr -d '\r'
 "${A[@]}" shell "pm list packages -e com.google.android.tvlauncher" | tr -d '\r'
-"${A[@]}" shell "pm list packages com.suop.tvlauncher" | tr -d '\r' || echo "  mi launcher ya no esta"
+"${A[@]}" shell "pm list packages es.hugoperezvigo.tvlauncher" | tr -d '\r' || echo "  mi launcher ya no esta"

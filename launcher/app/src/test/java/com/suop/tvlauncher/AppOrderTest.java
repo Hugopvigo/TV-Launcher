@@ -1,9 +1,9 @@
-package com.suop.tvlauncher;
+package es.hugoperezvigo.tvlauncher;
 
 import static org.junit.Assert.assertEquals;
 
-import com.suop.tvlauncher.grid.GridItem;
-import com.suop.tvlauncher.ui.AppOrder;
+import es.hugoperezvigo.tvlauncher.grid.GridItem;
+import es.hugoperezvigo.tvlauncher.ui.AppOrder;
 import org.junit.Test;
 
 import java.util.Arrays;

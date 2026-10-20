@@ -1,4 +1,4 @@
-package com.suop.tvlauncher.grid;
+package es.hugoperezvigo.tvlauncher.grid;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package com.suop.tvlauncher.ui;
+package es.hugoperezvigo.tvlauncher.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;

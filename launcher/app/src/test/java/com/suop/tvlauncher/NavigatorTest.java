@@ -1,10 +1,10 @@
-package com.suop.tvlauncher;
+package es.hugoperezvigo.tvlauncher;
 
 import static org.junit.Assert.assertEquals;
 
-import com.suop.tvlauncher.nav.FocusState;
-import com.suop.tvlauncher.nav.Navigator;
-import com.suop.tvlauncher.nav.Zone;
+import es.hugoperezvigo.tvlauncher.nav.FocusState;
+import es.hugoperezvigo.tvlauncher.nav.Navigator;
+import es.hugoperezvigo.tvlauncher.nav.Zone;
 import org.junit.Test;
 
 /**

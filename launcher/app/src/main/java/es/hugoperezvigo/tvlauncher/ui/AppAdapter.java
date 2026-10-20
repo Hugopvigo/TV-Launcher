@@ -1,4 +1,4 @@
-package com.suop.tvlauncher.ui;
+package es.hugoperezvigo.tvlauncher.ui;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,8 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.suop.tvlauncher.AppCatalog;
-import com.suop.tvlauncher.R;
+import es.hugoperezvigo.tvlauncher.AppCatalog;
+import es.hugoperezvigo.tvlauncher.R;
 import java.util.ArrayList;
 import java.util.List;
 

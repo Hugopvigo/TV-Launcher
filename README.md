@@ -1,258 +1,148 @@
-# Debloat del Xiaomi Mi TV Stick (MiTV-AESP0)
+<p align="center">
+  <img src="docs/capturas/00-cabecera.png" alt="TV Launcher para el Mi TV Stick" width="100%">
+</p>
 
-> **📄 [Informe completo → `docs/INFORME.md`](docs/INFORME.md)**
-> Un único documento con todo: qué se desactivó y por qué, qué apps se
-> desinstalaron, el launcher propio, el arreglo del mando que no despertaba
-> el stick, cómo revertirlo todo y lo aprendido del dispositivo.
-> El APK ya compilado está en `dist/`, con su checksum SHA-256.
+<p align="center">
+  <b>Un launcher de TV propio, en Java, para el Xiaomi Mi TV Stick.</b><br>
+  Sin fila «Patrocinado», sin «Mi Channel», sin recomendaciones.
+</p>
 
-Debloat reversible de un **Xiaomi Mi TV Stick — MiTV-AESP0** (codename `aquaman`),
-Android 9 / API 28, **Google TV**, firmware `PI.2055` (build 22.9.6.2055), 1 GB de RAM.
+<p align="center">
+  <a href="dist/tvlauncher-1.0-release.apk"><img alt="descargar" src="https://img.shields.io/badge/APK-1.6%20MB-es.hugoperezvigo.tvlauncher-ff5f5f7?style=flat-square&labelColor=1a1a1e"></a>
+  <img alt="licencia" src="https://img.shields.io/badge/licencia-MIT-8E8E93?style=flat-square&labelColor=1a1a1e">
+  <img alt="android" src="https://img.shields.io/badge/Android-9%20(API%2028)-3DDC84?style=flat-square&labelColor=1a1a1e">
+  <img alt="java" src="https://img.shields.io/badge/Java-11-8E8E93?style=flat-square&labelColor=1a1a1e">
+</p>
 
-Todo lo hecho es **reversible**: no se ha desinstalado nada del sistema, no se ha
-tocado la partición de firmware y no se ha modificado el bootloader.
+---
 
-## Resultado
+## Qué es esto
 
-| Métrica | Antes | Después |
+Un trabajo completo sobre un **Xiaomi Mi TV Stick** (`MiTV-AESP0`, Android 9,
+Google TV, 1 GB de RAM):
+
+1. **Debloat**: 21 paquetes desactivados y 7 apps desinstaladas. +400 MB de
+   disco, +50 MB de RAM, sin rastro del telemetría de Xiaomi ni del Asistente
+   de Google.
+2. **Un launcher propio** en Java (AndroidX RecyclerView) que sustituye al de
+   Google TV, con navegación determinista por D-pad, un cristal que salta de
+   tesela en tesela y tipografía Outfit.
+3. **El arreglo de por qué el mando no despertaba el stick** (y de por qué la
+   causa era el propio debloat).
+
+Todo es **reversible**: no se toca la partición de firmware ni el bootloader.
+
+> 📄 **[Informe completo → `docs/INFORME.md`](docs/INFORME.md)** — qué se
+> desactivó y por qué, qué se probó y falló, y lo aprendido del dispositivo.
+
+## Descargar
+
+| | |
+|---|---|
+| [`tvlauncher-1.0-release.apk`](dist/tvlauncher-1.0-release.apk) | 1,6 MB · release firmado · `es.hugoperezvigo.tvlauncher` |
+| [`sha256`](dist/tvlauncher-1.0-release.apk.sha256) | `ac4de70b…c7f` |
+
+```bash
+adb install -r tvlauncher-1.0-release.apk
+adb shell cmd package set-home-activity es.hugoperezvigo.tvlauncher/.LauncherActivity
+adb shell pm disable-user --user 0 com.google.android.tvlauncher
+adb reboot
+```
+
+El paso 3 **no es opcional**: mientras el launcher de Google TV siga
+habilitado, el sistema lo relanza y se pone delante del nuestro. Está
+explicado en el [informe](docs/INFORME.md#6-por-qu%C3%A9-hay-que-desactivar-el-launcher-de-google-tv).
+
+<details>
+<summary>Compilar desde el código</summary>
+
+```bash
+cd launcher
+./build.sh assembleRelease      # necesita el SDK de Android y JDK 21
+./build.sh testDebugUnitTest    # 32 tests
+```
+
+El build usa el toolchain de Windows (SDK en `C:\Users\Hugop\AppData\Local\Android\Sdk`,
+JDK 21 de Adoptium) porque es donde está instalado; `build.bat` hace lo mismo
+desde Windows.
+
+La firma de release busca el keystore en `~/.config/suop/` (o en
+`C:\Users\<usuario>\.config\suop\`, o donde apunte `TVLAUNCHER_SIGNING_DIR`).
+**El keystore y las contraseñas no están en el repo**: sin ellos, el build de
+release sale sin firmar y el de debug funciona igual.
+</details>
+
+## El launcher
+
+| | |
+|---|---|
+| ![inicio](docs/capturas/03-launcher-inicio.png) | ![foco en menu](docs/capturas/04-launcher-foco-en-menu.png) |
+| La pantalla de inicio: reloj, menús y rejilla a todo el ancho. | El foco de los menús se distingue por el relleno, sin reborde. |
+
+- Fondo negro con un halo radial muy suave, reloj grande y fino, fecha y
+  saludo, todo en **Outfit** (OFL).
+- Menús redondeados con icono: **Entradas**, **Wi-Fi** y **Ajustes**.
+- Rejilla de **4 columnas a todo el ancho** con todas las apps de TV.
+- Un único **cristal** que salta de tesela en tesela; la enfocada crece y
+  muestra su nombre debajo.
+- **Navegación determinista**: Up/Down mueven exactamente una fila, Up desde
+  la primera fila sube a la barra, los extremos de la barra no se caen a las
+  teselas y se recuerda la última tesela enfocada.
+
+El orden de las apps se configura en
+[`config.xml`](launcher/app/src/main/res/values/config.xml): las que Uses
+arriba, las que no, al final.
+
+![orden](docs/capturas/06-launcher-orden-completo.png)
+
+## El debloat
+
+| | Antes | Después |
 |---|---|---|
-| Apps de usuario instaladas | 11 | 5 (las que usas) + `com.mitv.tvhome.mitvplus` deshabilitada |
-| Disco libre en `/data` | 1,8 GB (60% ocupado) | **2,2 GB (52% ocupado)** |
-| Paquetes de terceros activos | 99 | 72 |
-| RAM disponible | ~242 MB | ~321 MB |
+| Pantalla de inicio | Google TV | launcher propio |
+| Disco libre en `/data` | 1,8 GB | **2,2 GB** |
+| RAM disponible | ~242 MB | **~292 MB** |
+| Paquetes de terceros activos | 99 | 71 |
 
-Apps de usuario que quedan (las que sí usas): **Prime Video, SkyShowtime,
-HBO Max, Spotify, Twitch y Plex**.
+21 paquetes desactivados con `pm disable-user` (contenido de Xiaomi,
+telemetría, recomendaciones, asistente de voz) y 7 apps desinstaladas con
+`pm uninstall --user 0` (streaming que no usabas, ~109 MB).
 
-## Launcher propio
+Ni una sola cosa del sistema se borró: `pm disable-user` no borra nada, se
+revierte con `pm enable`.
 
-Además del debloat, se instaló un **launcher propio estilo Apple TV**
-(`launcher/` en este repo) que sustituye al launcher de Google TV: sin fila
-"Patrocinado", sin "Mi Channel", sin recomendaciones. Ver
-[`launcher/README.md`](launcher/README.md).
+![antes](docs/capturas/01-debloat-google-tv-antes.png)
+*El launcher de Google TV antes: «Patrocinado», «Mi Channel» y recomendaciones.*
 
-Estado actual del stick: `com.suop.tvlauncher` es el HOME por defecto y
-`com.google.android.tvlauncher` está deshabilitado (si no, el sistema lo
-relanza y se pone delante). `launcher/tools/uninstall-launcher.sh` deshace
-todo y devuelve el launcher de fábrica.
-
-## Qué se desactivó (21 paquetes, `pm disable-user --user 0`)
-
-Se usan **`pm disable-user --user 0`**, nunca `pm uninstall` de paquetes del
-sistema: el APK sigue en el dispositivo y la operación es reversible con
-`pm enable`.
-
-### Contenido, publicidad y telemetría de Xiaomi
-| Paquete | Qué es |
-|---|---|
-| `com.mitv.tvhome.mitvplus` | Mi TV Plus / PatchWall (contenido preinstalado) |
-| `com.mitv.tvhome.atv` | Mi TV Home |
-| `com.mitv.tvhome.michannel` | Mi Channel |
-| `com.xm.webcontent` | Contenido web de Xiaomi |
-| `com.xiaomo.tv.milegal` | Avisos legales de Xiaomi |
-| `com.miui.tv.analytics` | Telemetría de Xiaomi |
-| `com.mitv.download.service` | Descargas de contenido (además crasheaba solo) |
-| `com.mitv.videoplayer` | Reproductor de vídeo de Xiaomi |
-| `com.mitv.milinkservice` | Mi Link (mando desde el móvil) |
-| `android.autoinstalls.config.xioami.mibox3` | **Auto Install Config**: permite que Play Store autoinstale apps preinstaladas |
-| `tv.alphonso.alphonso_eula` | EULA de Alphonso (telemetría de TV) |
-| `com.xiaomi.android.tvsetup.partnercustomizer` | Asistente de configuración de Xiaomi |
-
-### Google: recomendaciones, telemetría y asistente
-| Paquete | Qué es |
-|---|---|
-| `com.google.android.tvrecommendations` | Filas de recomendaciones y "Patrocinado" |
-| `com.google.android.backdrop` | Fondo ambiental |
-| `com.google.android.feedback` | Envío de feedback |
-| `com.google.android.tv.bugreportsender` | Envío de informes de error |
-| `com.google.android.partnersetup` | Atribución a partners |
-| `com.google.android.syncadapters.contacts` | Sincronización de contactos |
-| `com.google.android.syncadapters.calendar` | Sincronización de calendario |
-| `com.google.android.katniss` | Asistente de Google (voz) |
-| `com.google.android.speech.pumpkin` | Reconocimiento de voz |
-
-### Streaming que no usas (`pm uninstall --user 0`)
-`com.netflix.ninja` (42 MB), `com.disney.disneyplus` (23 MB),
-`com.antena3.atresplayer.tv` (23 MB), `com.rt.tv` (11 MB),
-`tv.accedo.mitele_xdk` (8 MB), `dw.com.androidtv.live` (2 MB).
-Además se desinstaló `com.overdevs.at4k`, que **se autoinstaló sola** a las
-17:19 durante la sesión a través del Auto Install Config de Xiaomi.
-
-> **Sobre la reversibilidad de la desinstalación (verificado en la práctica):**
-> `pm uninstall --user 0` **borra el APK de `/data/app` de forma asíncrona**.
-> Si se restaura el paquete con `pm install-existing` *antes* de que ese borrado
-> se ejecute, funciona y no hay que volver a descargarlo. Si se deja pasar el
-> borrado, el paquete desaparece del sistema y `install-existing` responde
-> `NameNotFoundException: Package ... doesn't exist`: hay que reinstalarlo
-> desde Play Store.
->
-> En esta sesión se comprobó con Netflix (restaurado con `install-existing` y
-> luego desinstalado otra vez) y con las otras cinco, cuyo APK ya había
-> desaparecido. **Todas son gratuitas y están en Play Store**, así que
-> reinstalarlas es un trámite; pero conviene saberlo: la desinstalación de
-> apps de usuario libera espacio de verdad y eso no es gratis de deshacer.
->
-> `pm disable-user --user 0` (lo que se ha hecho con los 21 paquetes del
-> sistema) **no borra nada**: el APK sigue ahí y se revierte en un segundo con
-> `pm enable`.
-
-## Qué NO se tocó, y por qué
-
-| Paquete | Motivo |
-|---|---|
-| `com.google.android.tvlauncher` | Es el launcher activo (HOME). El objetivo era debloat, no cambiar el launcher. |
-| `com.google.android.tungsten.setupwraith` | La red Wi‑Fi guardada en la primera configuración es suya (`dumpsys wifi` → `cname=com.google.android.tungsten.setupwraith`). Desactivarla **borraría esa red** y el stick se quedaría sin Wi‑Fi ni ADB. |
-| `com.android.tv.settings` | Ajustes del sistema: entrada HDMI, pairing del mando. |
-| `com.google.android.gms`, `gsf`, `vending` | Play Services, Google Services Framework y Play Store. |
-| `com.google.android.inputmethod.latin` | Teclado en pantalla. |
-| `com.google.android.tts` | Se mantiene por accesibilidad (TalkBack). |
-| `com.google.android.apps.mediashell` | Chromecast (decisión del usuario). |
-| `com.xiaomi.mitv.updateservice` | Actualizaciones de firmware (decisión del usuario). |
-| `com.mitv.service` | Servicio de TV de Xiaomi: permiso **HDMI_CEC** y apagado del TV. Se probó desactivarlo buscando el origen de la fila "Mi Channel" y **resultó que no era el responsable**, así que se reactivó. |
-| `com.mitv.dream` | Protector de pantalla (evita quemado de panel). |
-| `com.droidlogic.*`, `com.android.bluetooth`, `InputDevices` | Hardware, pairing y mando. |
-| `com.android.shell` | Se usa para el propio ADB. |
-| `com.google.android.tv` | App Google TV (EPG de Live TV). Se probó desactivarla y **no eliminaba la fila "Mi Channel"**, así que se reactivó. |
-
-## Lo que NO se puede arreglar sin root
-
-- **La fila "Mi Channel"** del inicio: es la integración de Live TV que el
-  launcher de Google TV trae embebida. Se comprobó que **no** viene de
-  `mitv.service` ni de `com.google.android.tv` (desactivando ambos sigue
-  apareciendo), y no hay ningún paquete que la sirva de forma desactivable.
-- **Los procesos PERSISTENT** (`xiaomi.tvservice`, `mitv.service` y
-  `com.xiaomi.android.tvsetup.partnercustomizer`): Android ignora el `disable`
-  de los paquetes persistentes y `pm disable` a nivel de componente está
-  bloqueado por seguridad (`SecurityException: Shell cannot change component
-  state ... to 2`). Sin root, son inmortales. Ocupan ~50 MB de RAM entre los dos.
-- **La fila "Patrocinado"**: laSponsored row la pinta el launcher; sin
-  launcher propio no se puede quitar. Alternativa: un DNS bloqueador de
-  anuncios (no aplicado, decisión del usuario).
-
-## Restaurar
+## Revertir
 
 ```bash
-cd /mnt/c/Users/Hugop/Dev/firestick-debloat
-
-# Todo (reactiva los 21 deshabilitados y reinstala las desinstaladas)
-./tools/restore.sh
-
-# Un paquete concreto
-./tools/restore.sh com.google.android.katniss
+./tools/restore.sh                      # debloat: reactiva y reinstala
+cd launcher && ./tools/uninstall-launcher.sh   # devuelve el launcher de fábrica
 ```
 
-El script lee `tools/disabled.list` y `tools/uninstalled.list`, que son la
-fuente de verdad de lo tocado. Los 21 deshabilitados se recuperan al instante.
-Las desinstaladas se recuperan con `pm install-existing` **si su APK sigue en
-`/data/app`**; si ya no, hay que instalarlas desde Play Store (el script avisa
-del caso).
+Detalle de qué se puede y qué no se puede revertir (y por qué el
+`pm uninstall` borra el APK de forma asíncrona) en el
+[informe](docs/INFORME.md#32-apps-desinstaladas-7).
 
-## Conectar
-
-```bash
-source tools/env.sh          # define adb_tv y TV_SERIAL
-adb_tv shell getprop ro.product.model
-```
-
-El `adb` nativo está en `/tmp/opencode/pt/platform-tools` y reutiliza tu clave
-ya autorizada (`~/.android/adbkey`, copiada de Windows) para no tener que
-volver a aceptar el diálogo en la tele.
-
-## Herramientas
-
-| Script | Para qué |
-|---|---|
-| `tools/backup.sh` | Instantánea de paquetes, `getprop` y todos los `settings` |
-| `tools/disable.sh <pkg>…` | Desactiva paquetes y registra la operación |
-| `tools/restore.sh` | Revierte todo |
-| `tools/check.sh` | Estado del stick: launcher en pie, crashes, paquetes off |
-| `tools/shot.sh <nombre>` | Captura de pantalla al stick |
-
-## Más allá del debloat
-
-- **Desinstalar apps de usuario** es lo que de verdad libera espacio
-  (`disable` no borra nada del disco). Se ha hecho con las de streaming que no
-  usas.
-- **El launcher propio estilo Apple TV** quitaría el ruido visual del inicio
-  (fila "Patrocinado", "Mi Channel", recomendaciones), pero **no** libera RAM
-  ni disco, y en un Google TV el asistente de configuración (`setupwraith`)
-  puede recuperar el control tras un reinicio — lo que te dejaría sin ADB.
-- **Un DNS bloqueador de anuncios** (Private DNS → `dns.adguard-dns.com`)
-  atajaría la fila "Patrocinado" sin tocar nada del sistema. No se aplicó
-  (decisión del usuario). Se revierte con
-  `settings put global private_dns_mode opportunistic`.
-- **El servicio de actualizaciones de Xiaomi** (`com.xiaomi.mitv.updateservice`,
-  86 MB de RAM) no solo actualiza el firmware: también notifica cada app
-  instalada a Xiaomi con tu `anonymous_device_id` y tiene un componente
-  (`pie.InstallEventReceiver`) de autoinstalación. Sus componentes no se
-  pueden desactivar sin root, así que la única forma de quitarlo es
-  desactivar el paquete entero (y perder las actualizaciones automáticas).
-
-## Notas de la sesión
-
-- Una captura salió en negro justo después del lote 3: era el launcher
-  redibujándose tras el evento de paquete, no un fallo. Se comprobó con
-  `logcat -b crash` (sin `FATAL EXCEPTION` del launcher) y con un reinicio.
-- El `com.mitv.download.service` ya crasheaba solo antes de tocar nada
-  (`NullPointerException` en `DownloadThread.run`).
-- `pm install-existing` funciona en este dispositivo: se comprobó restaurando
-  Netflix y volviéndolo a desinstalar.
-- **Bug encontrado y corregido en `restore.sh`**: `adb shell` hereda el `stdin`
-  del bucle `while read` y se come el resto de la lista, así que solo se
-  reactivaba el primer paquete. Se arregló con `< /dev/null` en cada llamada
-  a `adb` (también en `disable.sh` y `backup.sh`). El restaurador se probó de
-  verdad: deshabilita todo y vuelve a habilitar los 21 correctamente.
-
-## El mando no despertaba el stick (arreglado)
-
-El mando del Mi TV Stick es **Bluetooth** (aparece emparejado como
-`MiTVStick`), no infrarrojo. Al entrar en suspensión se apagaba el Bluetooth
-y el mando ya no despertaba el dispositivo: había que apagar y encender la TV.
-
-**La causa era el debloat**: el protector de pantalla configurado era
-`com.google.android.backdrop`, que desactivé en el lote 3. Sin un componente
-de dream válido, el stick entraba en suspensión profunda en vez de activar el
-protector, y con el BT apagado el mando no llegaba.
-
-Arreglo aplicado:
-
-```bash
-adb shell settings put secure screensaver_components com.mitv.dream/.MiDream
-adb shell settings put global stay_on_while_plugged_in 7
-adb shell settings put system screen_off_timeout 1800000
-```
-
-`com.mitv.dream/.MiDream` es el protector de pantalla de Xiaomi
-(`DreamService` válido). Con él el stick entra en modo protector en vez de
-suspenderse, el Bluetooth sigue vivo y el mando lo despierta.
-`stay_on_while_plugged_in 7` lo mantiene despierto mientras está alimentado
-(el stick se enchufa al TV por USB).
-
-**Aviso**: si se cambia el protector de pantalla, hay que volver a apuntar a
-`com.mitv.dream/.MiDream` o el mando volverá a fallar.
-
-## ADB cerrado (estado final)
-Al terminar, el ADB de red se dejó **cerrado**, como pide el prompt:
-
-```bash
-settings put global adb_enabled 0     # equivalente a apagar USB debugging
-adb shell reboot
-```
-
-Verificado tras el reinicio:
+## Repositorio
 
 ```
-$ timeout 5 bash -c '</dev/tcp/192.168.3.124/5555'
-bash: connect: Connection refused        # puerto 5555 CERRADO
-$ adb connect 192.168.3.124:5555
-failed to connect: Connection refused
+firestick-debloat/
+├── docs/INFORME.md      informe completo
+├── docs/capturas/       capturas de referencia
+├── dist/                APK firmado + checksum
+├── launcher/            código fuente del launcher (Java, 32 tests)
+├── tools/               backup, restore, disable, sanitizado, cabecera
+└── backup/2026-10-20/   estado original del dispositivo
 ```
 
-El stick sigue vivo y con Wi‑Fi (ping 3 ms). El puerto 5555 va en texto
-plano: con `ro.adb.secure=0` cualquier equipo de la red podría abrir una
-shell; por eso se cierra.
+## Licencia
 
-> **Para volver a conectar ADB** (si lo necesitas en el futuro): en el stick,
-> Ajustes → Developer options → *ADB debugging* (o *Network debugging*), y
-> conectar con `adb connect 192.168.3.124:5555`. Vuelve a aparecer el diálogo
-> "Permitir depuración" que hay que aceptar con el mando.
+El código de este repositorio está bajo **MIT**. La tipografía
+[Outfit](https://fonts.google.com/specimen/Outfit) se distribuye bajo su
+licencia **SIL Open Font License 1.1** (los ficheros `.ttf` van incluidos en
+`launcher/app/src/main/res/font/`).
+
+Las capturas muestran la interfaz del launcher propia; el wallpaper y los
+iconos de las apps pertenecen a sus respectivos titulares.

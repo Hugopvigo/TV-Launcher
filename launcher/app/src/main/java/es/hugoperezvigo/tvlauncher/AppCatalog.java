@@ -1,4 +1,4 @@
-package com.suop.tvlauncher;
+package es.hugoperezvigo.tvlauncher;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,9 +12,9 @@ import android.os.Process;
 import android.os.UserHandle;
 import android.util.Log;
 
-import com.suop.tvlauncher.grid.Grid;
-import com.suop.tvlauncher.grid.GridItem;
-import com.suop.tvlauncher.ui.AppOrder;
+import es.hugoperezvigo.tvlauncher.grid.Grid;
+import es.hugoperezvigo.tvlauncher.grid.GridItem;
+import es.hugoperezvigo.tvlauncher.ui.AppOrder;
 
 import java.util.ArrayList;
 import java.util.Collections;

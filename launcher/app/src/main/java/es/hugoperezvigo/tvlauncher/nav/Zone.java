@@ -1,4 +1,4 @@
-package com.suop.tvlauncher.nav;
+package es.hugoperezvigo.tvlauncher.nav;
 
 /**
  * Zona de la pantalla donde puede estar el foco.

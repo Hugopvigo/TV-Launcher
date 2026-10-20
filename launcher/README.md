@@ -34,7 +34,7 @@ O a mano:
 
 ```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell cmd package set-home-activity com.suop.tvlauncher/.LauncherActivity
+adb shell cmd package set-home-activity es.hugoperezvigo.tvlauncher/.LauncherActivity
 adb shell pm disable-user --user 0 com.google.android.tvlauncher
 adb reboot
 ```

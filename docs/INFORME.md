@@ -14,7 +14,7 @@ bootloader, ni desinstalación de nada del sistema.
 
 | | Antes | Después |
 |---|---|---|
-| Pantalla de inicio | Google TV (con "Patrocinado" y "Mi Channel") | **Launcher propio** (`com.suop.tvlauncher`) |
+| Pantalla de inicio | Google TV (con "Patrocinado" y "Mi Channel") | **Launcher propio** (`es.hugoperezvigo.tvlauncher`) |
 | Disco libre en `/data` | 1,8 GB (60% ocupado) | **2,2 GB (52% ocupado)** |
 | RAM disponible | ~242 MB | **~292 MB** |
 | Paquetes de terceros activos | 99 | 71 |
@@ -43,8 +43,8 @@ firestick-debloat/
 │   ├── PLAN.md                ← plan del debloat con los lotes y sus motivos
 │   └── capturas/              ← capturas de referencia
 ├── dist/
-│   ├── tvlauncher-1.0-debug.apk        ← el launcher ya compilado
-│   └── tvlauncher-1.0-debug.apk.sha256
+│   ├── tvlauncher-1.0-release.apk       ← el launcher ya compilado y firmado
+│   └── tvlauncher-1.0-release.apk.sha256
 ├── launcher/                  ← código fuente del launcher
 │   ├── README.md              ← detalles técnicos del launcher
 │   ├── app/src/main/…         ← Java + recursos
@@ -61,18 +61,18 @@ firestick-debloat/
 
 ### El APK
 
-`dist/tvlauncher-1.0-debug.apk` (2,2 MB) ya está compilado y con su checksum
+`dist/tvlauncher-1.0-release.apk` (1,6 MB, release firmado) ya está compilado y con su checksum
 SHA-256:
 
 ```
-5ad4271a2bec96c2fa86b3bb574c86d60efd9ecde211498c44678f255bdc08e0
+ac4de70bb3785955a59752af74815a72b1601c435e8edbdbad8911ac61355c7f
 ```
 
 Para instalarlo a mano:
 
 ```bash
-adb install -r dist/tvlauncher-1.0-debug.apk
-adb shell cmd package set-home-activity com.suop.tvlauncher/.LauncherActivity
+adb install -r dist/tvlauncher-1.0-release.apk
+adb shell cmd package set-home-activity es.hugoperezvigo.tvlauncher/.LauncherActivity
 adb shell pm disable-user --user 0 com.google.android.tvlauncher
 adb reboot
 ```
@@ -369,3 +369,28 @@ si hay que repetir el trabajo en otro modelo de Xiaomi:
    de la lista → usar `< /dev/null` en cada llamada.
 9. El servicio de TV de Xiaomi (`mitv.service`) tiene permiso **HDMI_CEC** y
    gestiona el apagado del TV: no se debe tocar.
+
+---
+
+## 9. Notas de publicación
+
+**Paquete**: `es.hugoperezvigo.tvlauncher`. La primera versión del launcher
+usaba `com.suop.tvlauncher` y se renombró: nada de lo que hay aquí tiene que
+ver con SUOP, es un proyecto personal.
+
+**Firma**: el APK de `dist/` es un build de **release firmado** con una clave
+RSA de 4096 bits generada para este repositorio.
+
+```
+CN=TV Launcher, OU=Personal, O=Hugo Perez Vigo, C=ES
+SHA-256: 319f40b9249bc678d9a31bac7693500d90858d32895b83181f3e2c4045eff2f1
+```
+
+El keystore **no** está en el repositorio (está en `~/.config/suop/`, con
+permisos `600`). El `build.gradle` lo busca ahí, o en
+`C:\Users\<usuario>\.config\suop\`, o donde apunte la variable de entorno
+`TVLAUNCHER_SIGNING_DIR`. Sin él, el build de release sale sin firmar.
+
+**Privacidad**: antes de publicar se sanearon los identificadores del
+dispositivo (MAC, `android_id` y número de serie) de los ficheros de backup,
+con `tools/sanitize-for-public.sh`, que es reproducible y auditable.

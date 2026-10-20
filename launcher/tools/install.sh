@@ -5,7 +5,7 @@ export PATH="/tmp/opencode/pt/platform-tools:/usr/bin:/bin"
 A=(adb -s 192.168.3.124:5555)
 PROJ="$(cd "$(dirname "$0")/.." && pwd)"
 APK="$PROJ/app/build/outputs/apk/debug/app-debug.apk"
-PKG=com.suop.tvlauncher
+PKG=es.hugoperezvigo.tvlauncher
 GOOGLE_LAUNCHER=com.google.android.tvlauncher
 
 [ -f "$APK" ] || { echo "Falta el APK: compila con ./build.sh assembleDebug"; exit 1; }

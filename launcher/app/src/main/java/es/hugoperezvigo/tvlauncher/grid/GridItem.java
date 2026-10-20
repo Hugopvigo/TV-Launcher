@@ -1,4 +1,4 @@
-package com.suop.tvlauncher.grid;
+package es.hugoperezvigo.tvlauncher.grid;
 
 /**
  * Una app de la rejilla: paquete y etiqueta visible.

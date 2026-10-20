@@ -1,4 +1,4 @@
-package com.suop.tvlauncher.nav;
+package es.hugoperezvigo.tvlauncher.nav;
 
 /**
  * Navegacion determinista con D-pad.

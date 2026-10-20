@@ -1,4 +1,4 @@
-package com.suop.tvlauncher;
+package es.hugoperezvigo.tvlauncher;
 
 import android.content.Context;
 import android.content.Intent;
@@ -23,14 +23,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.suop.tvlauncher.grid.Grid;
-import com.suop.tvlauncher.grid.GridItem;
-import com.suop.tvlauncher.nav.FocusState;
-import com.suop.tvlauncher.nav.Navigator;
-import com.suop.tvlauncher.ui.AppAdapter;
-import com.suop.tvlauncher.ui.Clock;
-import com.suop.tvlauncher.ui.GlassHighlight;
-import com.suop.tvlauncher.ui.Greeting;
+import es.hugoperezvigo.tvlauncher.grid.Grid;
+import es.hugoperezvigo.tvlauncher.grid.GridItem;
+import es.hugoperezvigo.tvlauncher.nav.FocusState;
+import es.hugoperezvigo.tvlauncher.nav.Navigator;
+import es.hugoperezvigo.tvlauncher.ui.AppAdapter;
+import es.hugoperezvigo.tvlauncher.ui.Clock;
+import es.hugoperezvigo.tvlauncher.ui.GlassHighlight;
+import es.hugoperezvigo.tvlauncher.ui.Greeting;
 
 import java.util.ArrayList;
 import java.util.Arrays;

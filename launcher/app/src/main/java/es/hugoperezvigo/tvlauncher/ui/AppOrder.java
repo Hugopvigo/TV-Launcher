@@ -1,6 +1,6 @@
-package com.suop.tvlauncher.ui;
+package es.hugoperezvigo.tvlauncher.ui;
 
-import com.suop.tvlauncher.grid.GridItem;
+import es.hugoperezvigo.tvlauncher.grid.GridItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
