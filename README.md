@@ -215,7 +215,7 @@ $ adb connect 192.168.3.124:5555
 failed to connect: Connection refused
 ```
 
-El stick sigue vivo y con Wi‑Fi (ping 4 ms). El puerto 5555 va en texto
+El stick sigue vivo y con Wi‑Fi (ping 3 ms). El puerto 5555 va en texto
 plano: con `ro.adb.secure=0` cualquier equipo de la red podría abrir una
 shell; por eso se cierra.
 
