@@ -1,1 +1,4 @@
+# Las capturas de la sesion (50 iteraciones) no se versionan.
+# Las de referencia si, en docs/capturas/.
 backup/*/screenshots/*.png
+!docs/capturas/*.png

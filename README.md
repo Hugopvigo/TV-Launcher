@@ -1,5 +1,11 @@
 # Debloat del Xiaomi Mi TV Stick (MiTV-AESP0)
 
+> **📄 [Informe completo → `docs/INFORME.md`](docs/INFORME.md)**
+> Un único documento con todo: qué se desactivó y por qué, qué apps se
+> desinstalaron, el launcher propio, el arreglo del mando que no despertaba
+> el stick, cómo revertirlo todo y lo aprendido del dispositivo.
+> El APK ya compilado está en `dist/`, con su checksum SHA-256.
+
 Debloat reversible de un **Xiaomi Mi TV Stick — MiTV-AESP0** (codename `aquaman`),
 Android 9 / API 28, **Google TV**, firmware `PI.2055` (build 22.9.6.2055), 1 GB de RAM.
 
