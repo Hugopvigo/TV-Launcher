@@ -49,7 +49,7 @@ Todo es **reversible**: no se toca la partición de firmware ni el bootloader.
 | [`sha256`](dist/tvlauncher-1.1-release.apk.sha256) | `3051bcc2…2b77f` |
 
 ```bash
-adb install -r tvlauncher-1.0-release.apk
+adb install -r tvlauncher-1.1-release.apk
 adb shell cmd package set-home-activity es.hugoperezvigo.tvlauncher/.LauncherActivity
 adb shell pm disable-user --user 0 com.google.android.tvlauncher
 adb reboot

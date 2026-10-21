@@ -53,17 +53,18 @@ firestick-debloat/
 ├── PROMPT.md                  prompt para repetirlo en otra tele
 ├── docs/
 │   ├── INFORME.md             ← informe completo
+│   ├── HOTFIX-2026-10-21.md   ← el arreglo del launcher roto
 │   ├── GUIA-DEBLOAT.md        ← guía paso a paso
 │   ├── PLAN.md                ← plan del debloat con los lotes y sus motivos
 │   ├── canvas/                ← filosofía de la imagen de cabecera
 │   └── capturas/              ← capturas de referencia
 ├── dist/
-│   ├── tvlauncher-1.0-release.apk        ← el launcher ya compilado y firmado
-│   └── tvlauncher-1.0-release.apk.sha256
+│   ├── tvlauncher-1.1-release.apk        ← el launcher ya compilado y firmado
+│   └── tvlauncher-1.1-release.apk.sha256
 ├── launcher/                  ← código fuente del launcher
 │   ├── README.md              ← detalles técnicos del launcher
 │   ├── app/src/main/…         ← Java + recursos
-│   ├── app/src/test/…         ← 32 tests unitarios
+│   ├── app/src/test/…         ← 42 tests unitarios
 │   ├── build.sh / build.bat   ← compilación
 │   └── tools/                 ← instalar, desinstalar, comprobar
 ├── tools/                     ← scripts del debloat
@@ -92,7 +93,7 @@ SHA-256:
 Para instalarlo a mano:
 
 ```bash
-adb install -r dist/tvlauncher-1.0-release.apk
+adb install -r dist/tvlauncher-1.1-release.apk
 adb shell cmd package set-home-activity es.hugoperezvigo.tvlauncher/.LauncherActivity
 adb shell pm disable-user --user 0 com.google.android.tvlauncher
 adb reboot
