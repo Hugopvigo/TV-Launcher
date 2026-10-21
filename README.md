@@ -22,7 +22,7 @@ Un trabajo completo sobre un **Xiaomi Mi TV Stick** (`MiTV-AESP0`, Android 9,
 Google TV, 1 GB de RAM):
 
 1. **Debloat**: 21 paquetes desactivados y 7 apps desinstaladas. +400 MB de
-   disco, +50 MB de RAM, sin rastro del telemetría de Xiaomi ni del Asistente
+   disco, +50 MB de RAM, sin rastro de la telemetría de Xiaomi ni del Asistente
    de Google.
 2. **Un launcher propio** en Java (AndroidX RecyclerView) que sustituye al de
    Google TV, con navegación determinista por D-pad, un cristal que salta de
@@ -65,7 +65,7 @@ explicado en el [informe](docs/INFORME.md#6-por-qu%C3%A9-hay-que-desactivar-el-l
 ```bash
 cd launcher
 ./build.sh assembleRelease      # necesita el SDK de Android y JDK 21
-./build.sh testDebugUnitTest    # 32 tests
+./build.sh testDebugUnitTest    # 31 tests
 ```
 
 El build usa el toolchain de Windows (SDK en `C:\Users\Hugop\AppData\Local\Android\Sdk`,
@@ -84,6 +84,8 @@ release sale sin firmar y el de debug funciona igual.
 |---|---|
 | ![inicio](docs/capturas/03-launcher-inicio.png) | ![foco en menu](docs/capturas/04-launcher-foco-en-menu.png) |
 | La pantalla de inicio: reloj, menús y rejilla a todo el ancho. | El foco de los menús se distingue por el relleno, sin reborde. |
+| ![foco en el borde](docs/capturas/05-launcher-foco-en-borde.png) | ![orden](docs/capturas/06-launcher-orden-completo.png) |
+| El icono enfocado crece dentro de sus límites: no se sale de su celda ni se recorta, ni en la última columna. | El final de la rejilla: Play Películas, la única app marcada como `apps_last`. |
 
 - Fondo negro con un halo radial muy suave, reloj grande y fino, fecha y
   saludo, todo en **Outfit** (OFL).
@@ -96,10 +98,9 @@ release sale sin firmar y el de debug funciona igual.
   teselas y se recuerda la última tesela enfocada.
 
 El orden de las apps se configura en
-[`config.xml`](launcher/app/src/main/res/values/config.xml): las que Uses
-arriba, las que no, al final.
-
-![orden](docs/capturas/06-launcher-orden-completo.png)
+[`config.xml`](launcher/app/src/main/res/values/config.xml): las de
+`apps_first` van arriba, en ese orden; las de `apps_last`, al final; el
+resto, alfabéticamente en medio.
 
 ## El debloat
 
@@ -135,14 +136,15 @@ forma asíncrona) en el [informe](docs/INFORME.md#32-apps-desinstaladas-7).
 ## Repositorio
 
 ```
-firestick-debloat/
+TV-Launcher/
 ├── PROMPT.md             prompt para repetirlo en otra tele
+├── LICENSE               MIT
 ├── docs/INFORME.md       informe completo
 ├── docs/GUIA-DEBLOAT.md  guía paso a paso
 ├── docs/PLAN.md          plan del debloat por lotes
 ├── docs/capturas/        capturas de referencia
 ├── dist/                 APK firmado + checksum
-├── launcher/             código fuente del launcher (Java, 32 tests)
+├── launcher/             código fuente del launcher (Java, 31 tests)
 ├── tools/                backup, apply, disable, restore, check, cabecera
 └── backup/2026-10-20/    estado original del dispositivo
 ```
