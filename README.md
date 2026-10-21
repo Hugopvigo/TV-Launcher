@@ -65,7 +65,7 @@ explicado en el [informe](docs/INFORME.md#6-por-qu%C3%A9-hay-que-desactivar-el-l
 ```bash
 cd launcher
 ./build.sh assembleRelease      # necesita el SDK de Android y JDK 21
-./build.sh testDebugUnitTest    # 31 tests
+./build.sh testDebugUnitTest    # 32 tests
 ```
 
 El build usa el toolchain de Windows (SDK en `C:\Users\Hugop\AppData\Local\Android\Sdk`,
@@ -144,7 +144,7 @@ TV-Launcher/
 ├── docs/PLAN.md          plan del debloat por lotes
 ├── docs/capturas/        capturas de referencia
 ├── dist/                 APK firmado + checksum
-├── launcher/             código fuente del launcher (Java, 31 tests)
+├── launcher/             código fuente del launcher (Java, 32 tests)
 ├── tools/                backup, apply, disable, restore, check, cabecera
 └── backup/2026-10-20/    estado original del dispositivo
 ```
