@@ -1,3 +1,7 @@
+<meta property="og:title" content="TV-LAUNCHER">
+<meta property="og:description" content="Un launcher de TV propio, en Java, para el Xiaomi Mi TV Stick.">
+<meta property="og:image" content="https://raw.githubusercontent.com/Hugopvigo/TV-Launcher/main/docs/capturas/og.png">
+
 <p align="center">
   <img src="docs/capturas/00-cabecera.png" alt="TV Launcher para el Mi TV Stick" width="100%">
 </p>
