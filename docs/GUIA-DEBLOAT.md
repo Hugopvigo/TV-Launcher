@@ -22,8 +22,15 @@ Si prefieres que lo haga un asistente, el prompt está en
 **En el ordenador**: `adb` en el PATH y el stick en la misma red.
 
 ```bash
-adb connect 192.168.3.26:5555      # la IP del stick (cambia con el DHCP)
+adb connect 192.168.3.69:5555      # la IP del stick (cambia con el DHCP)
 adb devices                          # debe salir "device"
+```
+
+La IP se busca por su MAC (`6C-0D-C4-C7-5F-F7`) en la tabla ARP del router,
+que es lo que hace `tools/tv.sh`:
+
+```bash
+source tools/env.sh && echo $TV_SERIAL
 ```
 
 Te saldrá un diálogo en la tele: **«¿Permitir depuración USB?»**. Acéptalo
@@ -184,7 +191,7 @@ adb shell reboot
 Y comprueba que el puerto ya no abre:
 
 ```bash
-nc -vz 192.168.3.26 5555     # debe fallar
+nc -vz 192.168.3.69 5555     # debe fallar
 ```
 
 En el stick, además: *Opciones de desarrollador* → desactiva **Depuración ADB**

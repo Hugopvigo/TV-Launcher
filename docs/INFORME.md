@@ -2,8 +2,7 @@
 
 Informe completo del trabajo hecho el **20 de octubre de 2026** sobre el
 **Xiaomi Mi TV Stick (MiTV-AESP0)**, codename `aquaman`, Android 9 / API 28,
-**Google TV**, firmware `PI.2055` (build 22.9.6.2055), 1 GB de RAM, IP
-`192.168.3.124` (cambia con el DHCP; el 21-oct estaba en `192.168.3.26`).
+**Google TV**, firmware `PI.2055` (build 22.9.6.2055), 1 GB de RAM.
 
 Todo es **reversible**. Ni un solo cambio en la partición de firmware, ni en el
 bootloader, ni desinstalación de nada del sistema.
@@ -11,6 +10,33 @@ bootloader, ni desinstalación de nada del sistema.
 > 📄 **[El arreglo del launcher roto → `HOTFIX-2026-10-21.md`](HOTFIX-2026-10-21.md)** —
 > el launcher instalado el 20-oct no abría ninguna app; el 21-oct se arregló y
 > se verificó contra el stick.
+
+## 0. El dispositivo
+
+| | |
+|---|---|
+| Qué es | Xiaomi Mi TV Stick, en casa el **«HA TV dormitorio»** |
+| MAC (Wi-Fi, la de fábrica) | `6C-0D-C4-C7-5F-F7` |
+| MAC (Bluetooth) | `6C:0D:C4:C9:A9:E7` |
+| MAC del mando (MiTVStick) | `14:AB:56:A5:4B:D4` |
+| IP | **192.168.3.69**, reservada en el router por MAC (antes `.124` → `.26` → `.69`) |
+
+**La IP ya no cambia**: está reservada en el ER605 por su MAC. Aun así, para
+localizarlo:
+
+```bash
+source tools/env.sh      # define adb_tv y TV_SERIAL
+echo $TV_SERIAL
+```
+
+`tools/tv.sh` lo busca por su MAC en la tabla ARP del router y, si el stick
+está en suspensión (no aparece por ninguna parte), usa la última IP
+conocida. Para fijarla a mano: `TV_SERIAL=192.168.3.69:5555`.
+
+> **El stick se queda sin red si entra en suspensión profunda**: se apagan el
+> Wi-Fi y el Bluetooth, el mando ya no lo despierta y hay que desenchufarlo
+> del USB del televisor y volverlo a enchufar. Es lo que más ha liado este
+> trabajo (ver §5).
 
 ---
 
@@ -409,8 +435,9 @@ cd launcher && ./tools/uninstall-launcher.sh
 
 El 20-oct se dejó **cerrado** (puerto 5555 = `Connection refused`, verificado
 tras reiniciar). El 21-oct se volvió a abrir para el hotfix y **sigue
-abierto**: `adb connect 192.168.3.26:5555` (la IP cambia con el DHCP; se
-puede localizar con `adb mdns services`).
+abierto**: `adb connect 192.168.3.69:5555` (la IP cambia con el DHCP; se
+puede localizar por su MAC con `tools/tv.sh`; se
+muestra en `source tools/env.sh && echo $TV_SERIAL`).
 
 Para cerrarlo otra vez:
 

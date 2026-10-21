@@ -2,9 +2,16 @@
 # Instala el launcher en el stick y lo deja como inicio.
 # El APK se compila antes: ./build.sh assembleRelease
 #
-# La IP del stick cambia con el DHCP: se puede fijar con TV_SERIAL.
-#   TV_SERIAL=192.168.3.26:5555 ./tools/install.sh
-TV_SERIAL="${TV_SERIAL:-192.168.3.26:5555}"
+# El stick ("HA TV dormitorio") cambia de IP con el DHCP: se localiza por su
+# MAC con tools/tv.sh. Se puede fijar a mano:
+#   TV_SERIAL=192.168.3.69:5555 ./tools/install.sh
+_TV_SH="$(cd "$(dirname "$0")/../../tools" && pwd)/tv.sh"
+if [ -f "$_TV_SH" ]; then
+  . "$_TV_SH"
+  TV_SERIAL="${TV_SERIAL:-$(tv_serial)}"
+else
+  TV_SERIAL="${TV_SERIAL:-192.168.3.69:5555}"
+fi
 PKG=es.hugoperezvigo.tvlauncher
 GOOGLE_LAUNCHER=com.google.android.tvlauncher
 PROJ="$(cd "$(dirname "$0")/.." && pwd)"

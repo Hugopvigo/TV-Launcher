@@ -2,11 +2,13 @@
 # Entorno comun: adb apuntando al Mi TV Stick.
 # Uso de adb:  adb_tv <args...>   (funcion, valida en bash y zsh)
 #
-# La IP del stick cambia con el DHCP. Para verla:
-#   adb mdns services
-# y se puede fijar:
-#   TV_SERIAL=192.168.3.26:5555
-export TV_SERIAL="${TV_SERIAL:-192.168.3.26:5555}"
+# El stick ("HA TV dormitorio") cambia de IP con el DHCP: se localiza por su
+# MAC con tools/tv.sh. Para verla:
+#   source tools/env.sh && echo $TV_SERIAL
+_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+. "$_DIR/tv.sh"
+
+export TV_SERIAL="${TV_SERIAL:-$(tv_serial)}"
 
 # adb: el del PATH, o el del SDK de Android en Windows.
 if command -v adb >/dev/null 2>&1; then

@@ -30,10 +30,11 @@ El APK sale en `app/build/outputs/apk/debug/app-debug.apk`.
 ./tools/install.sh      # instala y lo pone como inicio
 ```
 
-La IP del stick cambia con el DHCP, así que se puede fijar:
+El stick ("HA TV dormitorio") cambia de IP con el DHCP, así que se localiza
+por su MAC con `tools/tv.sh`. Se puede fijar a mano:
 
 ```bash
-TV_SERIAL=192.168.3.26:5555 ./tools/install.sh
+TV_SERIAL=192.168.3.69:5555 ./tools/install.sh
 ```
 
 O a mano:

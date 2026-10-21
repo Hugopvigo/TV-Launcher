@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # Restaura el launcher de Google TV como inicio y desinstala el nuestro.
 # Uso: ./tools/uninstall-launcher.sh
-# La IP del stick cambia con el DHCP: se puede fijar con TV_SERIAL.
-TV_SERIAL="${TV_SERIAL:-192.168.3.26:5555}"
+# El stick ("HA TV dormitorio") cambia de IP con el DHCP: se localiza por su
+# MAC con tools/tv.sh.
+_TV_SH="$(cd "$(dirname "$0")/../../tools" && pwd)/tv.sh"
+if [ -f "$_TV_SH" ]; then
+  . "$_TV_SH"
+  TV_SERIAL="${TV_SERIAL:-$(tv_serial)}"
+else
+  TV_SERIAL="${TV_SERIAL:-192.168.3.69:5555}"
+fi
 
 if command -v adb >/dev/null 2>&1; then
   ADB=adb
