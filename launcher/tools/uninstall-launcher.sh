@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 # Restaura el launcher de Google TV como inicio y desinstala el nuestro.
 # Uso: ./tools/uninstall-launcher.sh
-export PATH="/tmp/opencode/pt/platform-tools:/usr/bin:/bin"
-A=(adb -s 192.168.3.124:5555)
+# La IP del stick cambia con el DHCP: se puede fijar con TV_SERIAL.
+TV_SERIAL="${TV_SERIAL:-192.168.3.26:5555}"
+
+if command -v adb >/dev/null 2>&1; then
+  ADB=adb
+elif [ -x "/mnt/c/Users/Hugop/AppData/Local/Android/Sdk/platform-tools/adb.exe" ]; then
+  ADB="/mnt/c/Users/Hugop/AppData/Local/Android/Sdk/platform-tools/adb.exe"
+else
+  echo "No encuentro adb. Instalalo o ponlo en el PATH."; exit 1
+fi
+A=("$ADB" -s "$TV_SERIAL")
 
 echo "== 1. devuelvo el HOME al launcher de Google TV =="
 "${A[@]}" shell "cmd package set-home-activity com.google.android.tvlauncher/.MainActivity" 2>&1 | tr -d '\r'
@@ -22,7 +31,7 @@ sleep 30
 for i in $(seq 1 30); do
   st=$("${A[@]}" get-state 2>/dev/null)
   [ "$st" = "device" ] && { echo "vuelve (iter $i)"; break; }
-  "${A[@]}" connect 192.168.3.124:5555 > /dev/null 2>&1
+  "$ADB" connect "$TV_SERIAL" > /dev/null 2>&1
   sleep 5
 done
 sleep 40

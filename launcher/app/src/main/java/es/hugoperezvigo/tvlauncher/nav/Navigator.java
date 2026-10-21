@@ -1,5 +1,7 @@
 package es.hugoperezvigo.tvlauncher.nav;
 
+import es.hugoperezvigo.tvlauncher.grid.Grid;
+
 /**
  * Navegacion determinista con D-pad.
  *
@@ -13,11 +15,12 @@ package es.hugoperezvigo.tvlauncher.nav;
  *   - Down desde la ultima fila se queda en la ultima fila.
  *   - En los extremos de la barra superior el foco no se cae a las teselas.
  *   - Se recuerda la ultima tesela enfocada de la rejilla.
+ *   - La ultima fila puede estar incompleta: el foco nunca cae en un hueco y
+ *     izquierda desde su primera tesela salta al final de la fila de arriba.
  */
 public final class Navigator {
 
-    private final int rows;
-    private final int columns;
+    private final Grid grid;
     private final int topCount;
 
     private Zone zone = Zone.GRID;
@@ -29,9 +32,8 @@ public final class Navigator {
     private int lastRow;
     private int lastColumn;
 
-    public Navigator(int rows, int columns, int topCount) {
-        this.rows = Math.max(0, rows);
-        this.columns = Math.max(1, columns);
+    public Navigator(Grid grid, int topCount) {
+        this.grid = grid;
         this.topCount = Math.max(0, topCount);
     }
 
@@ -61,13 +63,13 @@ public final class Navigator {
         switch (zone) {
             case TOP_BAR:
                 // Vuelve a la ultima tesela enfocada.
-                if (rows > 0) {
+                if (grid.rows() > 0) {
                     zone = Zone.GRID;
                     setGrid(lastRow, lastColumn);
                 }
                 break;
             case GRID:
-                if (row < rows - 1) {
+                if (row < grid.lastRow()) {
                     setGrid(row + 1, column);
                 }
                 break;
@@ -82,6 +84,11 @@ public final class Navigator {
             case GRID:
                 if (column > 0) {
                     setGrid(row, column - 1);
+                } else if (row > 0 && grid.columnsIn(row) < grid.columns()) {
+                    // La ultima fila esta incompleta: a su izquierda esta el
+                    // final de la fila de arriba, no un hueco.
+                    int previous = row - 1;
+                    setGrid(previous, grid.columnsIn(previous) - 1);
                 }
                 break;
             case TOP_BAR:
@@ -99,7 +106,7 @@ public final class Navigator {
     public Navigator right() {
         switch (zone) {
             case GRID:
-                if (column < columns - 1) {
+                if (column < grid.columnsIn(row) - 1) {
                     setGrid(row, column + 1);
                 }
                 break;
@@ -117,8 +124,9 @@ public final class Navigator {
 
     private void setGrid(int newRow, int newColumn) {
         zone = Zone.GRID;
-        row = Math.max(0, Math.min(newRow, Math.max(0, rows - 1)));
-        column = Math.max(0, Math.min(newColumn, columns - 1));
+        row = clamp(newRow, 0, Math.max(0, grid.lastRow()));
+        // La columna nunca puede caer en un hueco de la ultima fila.
+        column = clamp(newColumn, 0, Math.max(0, grid.columnsIn(row) - 1));
         lastRow = row;
         lastColumn = column;
     }
@@ -129,7 +137,7 @@ public final class Navigator {
      */
     public Navigator syncTopBar(int index) {
         zone = Zone.TOP_BAR;
-        topIndex = Math.max(0, Math.min(index, Math.max(0, topCount - 1)));
+        topIndex = clamp(index, 0, Math.max(0, topCount - 1));
         return this;
     }
 
@@ -137,5 +145,9 @@ public final class Navigator {
     public Navigator syncGrid(int newRow, int newColumn) {
         setGrid(newRow, newColumn);
         return this;
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(value, max));
     }
 }

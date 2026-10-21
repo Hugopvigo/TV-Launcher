@@ -30,10 +30,16 @@ El APK sale en `app/build/outputs/apk/debug/app-debug.apk`.
 ./tools/install.sh      # instala y lo pone como inicio
 ```
 
+La IP del stick cambia con el DHCP, así que se puede fijar:
+
+```bash
+TV_SERIAL=192.168.3.26:5555 ./tools/install.sh
+```
+
 O a mano:
 
 ```bash
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/release/app-release.apk
 adb shell cmd package set-home-activity es.hugoperezvigo.tvlauncher/.LauncherActivity
 adb shell pm disable-user --user 0 com.google.android.tvlauncher
 adb reboot
@@ -83,13 +89,27 @@ alfabéticamente en medio. Los paquetes que no estén instalados se ignoran.
   `app/src/main/res/font/`).
 - Menús redondeados arriba a la derecha: **Entradas**, **Wi-Fi** y **Ajustes**,
   con icono. Al enfocarse, la pastilla se ilumina y se agranda con un rebote:
-  se ve de un vistazo dónde está el foco.
+  se ve de un vistazo dónde está el foco. Los tres hacen algo:
+  - **Entradas** abre un desplegable navegable con las entradas reales del
+    dispositivo (el selector del sistema si lo hay, y la TV en directo). Los
+    servicios de previsualización de las apps de streaming se descartan: el
+    sistema los registra como si fueran tuner, pero no se puede cambiar a
+    ellos.
+  - **Wi-Fi** abre los ajustes de red del sistema.
+  - **Ajustes** abre los ajustes del sistema.
 - Rejilla de 4 columnas a todo el ancho con todas las apps de TV instaladas.
 - Un único "cristal" que salta de tesela en tesela, en vez de un borde por
   tesela. La tesela enfocada crece y muestra su nombre debajo.
 - Navegación determinista: Up/Down mueven exactamente una fila, Up desde la
   primera fila sube a la barra superior, y los extremos de la barra no se
   caen a las teselas. Se recuerda la última tesela enfocada.
+- Al desplazarse, la fila enfocada queda **entera arriba**. El scroll es de
+  píxeles, no un reposicionamiento: así la tesela enfocada no se recicla y no
+  se pierde el foco (que es lo que pasaba con `scrollToPositionWithOffset`).
+- La última fila puede estar incompleta (13 apps en 4 columnas): el foco no
+  cae en un hueco y la izquierda desde su primera tesela salta al final de la
+  fila de arriba.
+- Al volver de una app se recupera la última tesela enfocada, no la primera.
 
 ### Detalles de acabado
 
@@ -106,6 +126,7 @@ alfabéticamente en medio. Los paquetes que no estén instalados se ignoran.
 |---|---|
 | `grid/Grid.java` | Rejilla de 4 columnas (testeado) |
 | `nav/Navigator.java` | Navegación determinista con D-pad (testeado) |
+| `inputs/TvInputs.java` | Qué entradas son reales y cuáles no (testeado) |
 | `ui/Clock.java`, `ui/Greeting.java`, `ui/Tint.java` | Reloj, saludo y color (testeados) |
 | `ui/AppOrder.java` | Orden de las apps: prioritarias, resto y últimas (testeado) |
 | `ui/GlassHighlight.java` | El cristal que se mueve entre teselas |
@@ -114,7 +135,7 @@ alfabéticamente en medio. Los paquetes que no estén instalados se ignoran.
 | `AppCatalog.java` | Lista de apps de TV instaladas |
 | `LauncherActivity.java` | Orquestación, foco y acciones |
 
-Tests: `app/src/test/java/` (32 tests). Se ejecutan con
+Tests: `app/src/test/java/` (42 tests). Se ejecutan con
 `./build.sh testDebugUnitTest`.
 
 ## Despertar con el mando

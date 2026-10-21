@@ -93,4 +93,27 @@ public class GridTest {
         assertEquals("A", grid.at(0, 1).get().label);
         assertEquals("C", grid.at(0, 2).get().label);
     }
+
+    @Test
+    public void laUltimaFilaPuedeEstarIncompleta() {
+        Grid grid = Grid.of(Arrays.asList(
+                item("a", "A"), item("b", "B"), item("c", "C"), item("d", "D"),
+                item("e", "E")), 4);
+
+        assertEquals(4, grid.columnsIn(0));
+        assertEquals(1, grid.columnsIn(1));
+        assertEquals(1, grid.lastRow());
+        assertEquals(0, grid.columnsIn(9));
+    }
+
+    @Test
+    public void laPosicionDeUnaCeldaQueNoExisteEsMenosUno() {
+        Grid grid = Grid.of(Arrays.asList(
+                item("a", "A"), item("b", "B"), item("c", "C"), item("d", "D"),
+                item("e", "E")), 4);
+
+        assertEquals(4, grid.positionOf(1, 0));
+        assertEquals(-1, grid.positionOf(1, 1));
+        assertEquals(-1, grid.positionOf(0, 4));
+    }
 }

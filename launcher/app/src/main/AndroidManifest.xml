@@ -16,9 +16,6 @@
         </intent>
     </queries>
 
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-
     <application
         android:allowBackup="true"
         android:banner="@drawable/app_banner"

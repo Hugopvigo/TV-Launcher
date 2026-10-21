@@ -1,22 +1,23 @@
 package es.hugoperezvigo.tvlauncher;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Build;
+import android.media.tv.TvInputInfo;
+import android.media.tv.TvInputManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.OvershootInterpolator;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,9 +25,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import es.hugoperezvigo.tvlauncher.grid.Grid;
-import es.hugoperezvigo.tvlauncher.grid.GridItem;
+import es.hugoperezvigo.tvlauncher.inputs.TvInputs;
 import es.hugoperezvigo.tvlauncher.nav.FocusState;
 import es.hugoperezvigo.tvlauncher.nav.Navigator;
+import es.hugoperezvigo.tvlauncher.nav.Zone;
 import es.hugoperezvigo.tvlauncher.ui.AppAdapter;
 import es.hugoperezvigo.tvlauncher.ui.Clock;
 import es.hugoperezvigo.tvlauncher.ui.GlassHighlight;
@@ -46,9 +48,15 @@ import java.util.Locale;
  *     menus de entradas, Wi-Fi y ajustes a la derecha.
  *   - Rejilla de 4 columnas con todas las apps, a todo el ancho.
  */
-public class LauncherActivity extends AppCompatActivity implements AppAdapter.FocusListener {
+public class LauncherActivity extends AppCompatActivity implements AppAdapter.Listener {
 
     private static final long CLOCK_INTERVAL_MS = 20_000L;
+
+    /** Botones de la barra superior: entradas, Wi-Fi y ajustes. */
+    private static final int TOP_BAR_COUNT = 3;
+
+    /** Accion del sistema que abre el selector de entradas de TV. */
+    private static final String ACTION_SHOW_TV_INPUTS = "android.media.tv.action.SHOW_TV_INPUTS";
 
     private RecyclerView grid;
     private AppAdapter adapter;
@@ -62,9 +70,11 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
     private TextView btnInputs;
     private TextView btnWifi;
     private TextView btnSettings;
-    private LinearLayoutHolder inputsHolder;
+    private LinearLayout inputsPanel;
 
-    private final List<AppCatalog.Entry> entries = new ArrayList<>();
+    /** Vista que tenia el foco antes de abrir el desplegable de entradas. */
+    private View panelReturnFocus;
+
     private Grid gridModel;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -76,12 +86,17 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         }
     };
 
-    /** Envoltorio para no arrastrar el tipo de la vista del panel. */
-    private static final class LinearLayoutHolder {
-        final android.widget.LinearLayout view;
+    /** Una entrada del desplegable. */
+    private static final class InputOption {
+        final String label;
+        /** App a abrir, o null si lo que se abre es el selector del sistema. */
+        final ComponentName component;
+        final boolean systemPicker;
 
-        LinearLayoutHolder(android.widget.LinearLayout view) {
-            this.view = view;
+        InputOption(String label, ComponentName component, boolean systemPicker) {
+            this.label = label;
+            this.component = component;
+            this.systemPicker = systemPicker;
         }
     }
 
@@ -96,7 +111,7 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         btnInputs = findViewById(R.id.btn_inputs);
         btnWifi = findViewById(R.id.btn_wifi);
         btnSettings = findViewById(R.id.btn_settings);
-        inputsHolder = new LinearLayoutHolder(findViewById(R.id.inputs_panel));
+        inputsPanel = findViewById(R.id.inputs_panel);
 
         grid = findViewById(R.id.grid);
 
@@ -130,21 +145,23 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
 
         // Menus de la barra superior.
         btnInputs.setOnClickListener(v -> toggleInputs());
-        btnWifi.setOnClickListener(v -> { /* la pastilla es informativa */ });
+        btnWifi.setOnClickListener(v -> openWifiSettings());
         btnSettings.setOnClickListener(v -> openSettings());
         btnInputs.setOnFocusChangeListener((v, f) -> onTopBarFocus(f, 0));
         btnWifi.setOnFocusChangeListener((v, f) -> onTopBarFocus(f, 1));
         btnSettings.setOnFocusChangeListener((v, f) -> onTopBarFocus(f, 2));
 
         updateClock();
-        updateWifiLabel();
+        loadApps();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         handler.post(clockTick);
-        loadApps();
+        // Al volver de una app se recupera la ultima tesela enfocada, no la
+        // primera de la rejilla.
+        restoreFocus();
     }
 
     @Override
@@ -156,8 +173,7 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
     // ---------------------------------------------------------------- apps
 
     private void loadApps() {
-        entries.clear();
-        entries.addAll(AppCatalog.load(this, getPackageName()));
+        List<AppCatalog.Entry> loaded = AppCatalog.load(this, getPackageName());
 
         // Orden: las apps de config.xml primero, el resto alfabeticamente
         // y las marcadas como ultimas al final.
@@ -166,21 +182,11 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         List<String> last = Arrays.asList(
                 getResources().getStringArray(R.array.apps_last));
 
-        gridModel = AppCatalog.buildGrid(entries, first, last);
-
-        // El adaptador recibe las apps en el mismo orden que la rejilla.
-        List<AppCatalog.Entry> ordered = new ArrayList<>();
-        for (GridItem item : gridModel.items()) {
-            for (AppCatalog.Entry entry : entries) {
-                if (entry.packageName.equals(item.packageName)) {
-                    ordered.add(entry);
-                    break;
-                }
-            }
-        }
+        List<AppCatalog.Entry> ordered = AppCatalog.order(loaded, first, last);
+        gridModel = AppCatalog.buildGrid(ordered);
         adapter.setItems(ordered);
 
-        navigator = new Navigator(gridModel.rows(), Grid.COLUMNS, 3);
+        navigator = new Navigator(gridModel, TOP_BAR_COUNT);
 
         // Foco inicial en la primera tesela. Se espera a que la rejilla
         // tenga hijos: antes de eso no hay ninguna tesela que enfocar.
@@ -197,6 +203,22 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
                             focusGridCell(0, 0);
                         }
                     });
+        }
+    }
+
+    /** Devuelve el foco a donde estaba antes de abrir otra app. */
+    private void restoreFocus() {
+        if (navigator == null || grid.getChildCount() == 0) {
+            return;
+        }
+        FocusState state = navigator.focus();
+        if (state.zone == Zone.TOP_BAR) {
+            View top = topBarChild(state.topIndex);
+            if (top != null) {
+                top.requestFocus();
+            }
+        } else {
+            focusGridCell(state.row, state.column);
         }
     }
 
@@ -225,76 +247,73 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         }
     }
 
-    private void updateWifiLabel() {
-        String name = currentWifiName();
-        btnWifi.setText(name == null
-                ? getString(R.string.action_wifi)
-                : getString(R.string.action_wifi) + " " + name);
-    }
-
-    private String currentWifiName() {
-        try {
-            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-            if (cm == null) {
-                return null;
-            }
-            NetworkInfo info = cm.getActiveNetworkInfo();
-            if (info == null || !info.isConnected()) {
-                return null;
-            }
-            // El SSID no es publico en Android 10+, asi que se muestra solo
-            // el tipo de red. En Android 9 se puede leer con permisos.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                return null;
-            }
-            return info.getTypeName();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     // ---------------------------------------------------------- navegacion
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            switch (event.getKeyCode()) {
-                case KeyEvent.KEYCODE_DPAD_DOWN:
-                    moveFocus(Direction.DOWN);
-                    return true;
-                case KeyEvent.KEYCODE_DPAD_UP:
-                    moveFocus(Direction.UP);
-                    return true;
-                case KeyEvent.KEYCODE_DPAD_LEFT:
-                    moveFocus(Direction.LEFT);
-                    return true;
-                case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    moveFocus(Direction.RIGHT);
-                    return true;
-                case KeyEvent.KEYCODE_DPAD_CENTER:
-                case KeyEvent.KEYCODE_ENTER:
-                    activateFocused();
-                    return true;
-                case KeyEvent.KEYCODE_HOME:
-                    // El launcher ya esta en casa.
-                    return true;
-                case KeyEvent.KEYCODE_TV_INPUT:
-                    // Boton de entradas del mando.
-                    toggleInputs();
-                    return true;
-                case KeyEvent.KEYCODE_SETTINGS:
-                    // Boton de ajustes del mando.
-                    openSettings();
-                    return true;
-                case KeyEvent.KEYCODE_BACK:
-                    if (inputsHolder.view.getVisibility() == View.VISIBLE) {
-                        inputsHolder.view.setVisibility(View.GONE);
-                        return true;
-                    }
-                    break;
-                default:
-                    break;
+        int code = event.getKeyCode();
+        boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
+
+        // La tecla OK se consume entera, subida y bajada. Si la subida
+        // llegase al framework, este haria un segundo clic y la app se
+        // abriria dos veces.
+        if (code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER) {
+            if (down) {
+                activateFocused();
             }
+            return true;
+        }
+
+        if (!down) {
+            return super.dispatchKeyEvent(event);
+        }
+
+        switch (code) {
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                if (panelOpen()) {
+                    moveInPanel(1);
+                } else {
+                    moveFocus(Direction.DOWN);
+                }
+                return true;
+            case KeyEvent.KEYCODE_DPAD_UP:
+                if (panelOpen()) {
+                    moveInPanel(-1);
+                } else {
+                    moveFocus(Direction.UP);
+                }
+                return true;
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                if (panelOpen()) {
+                    closePanel();
+                } else {
+                    moveFocus(Direction.LEFT);
+                }
+                return true;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                if (!panelOpen()) {
+                    moveFocus(Direction.RIGHT);
+                }
+                return true;
+            case KeyEvent.KEYCODE_HOME:
+                // El launcher ya esta en casa.
+                return true;
+            case KeyEvent.KEYCODE_TV_INPUT:
+                // Boton de entradas del mando.
+                toggleInputs();
+                return true;
+            case KeyEvent.KEYCODE_SETTINGS:
+                // Boton de ajustes del mando.
+                openSettings();
+                return true;
+            case KeyEvent.KEYCODE_BACK:
+                if (panelOpen()) {
+                    closePanel();
+                    return true;
+                }
+                break;
+            default:
+                break;
         }
         return super.dispatchKeyEvent(event);
     }
@@ -363,44 +382,92 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
     }
 
     private void focusGridCell(int row, int column) {
-        if (adapter.getItemCount() == 0) {
+        if (gridModel == null || adapter.getItemCount() == 0) {
             return;
         }
-        int position = row * Grid.COLUMNS + column;
-        if (position >= adapter.getItemCount()) {
-            position = adapter.getItemCount() - 1;
+        final int position = gridModel.positionOf(row, column);
+        if (position < 0) {
+            return;
         }
-        final int target = position;
-        // Si la tesela no esta a la vista, se desplaza la rejilla hasta ella.
-        View child = layoutManager.findViewByPosition(target);
-        if (child == null || !isVisible(child)) {
-            grid.smoothScrollToPosition(target);
+        View view = layoutManager.findViewByPosition(position);
+        if (view == null) {
+            // La tesela todavia no existe: se fuerza el layout y se enfoca
+            // cuando la rejilla la haya creado.
+            layoutManager.scrollToPositionWithOffset(position, 0);
+            focusTileWhenLaidOut(position, 0);
+            return;
         }
-        grid.post(() -> {
-            View view = layoutManager.findViewByPosition(target);
-            if (view != null) {
-                view.requestFocus();
-                onTileFocused(target, view);
-            } else {
-                // La tesela aun no existe: se reintenta tras el scroll.
-                grid.postDelayed(() -> {
-                    View retry = layoutManager.findViewByPosition(target);
-                    if (retry != null) {
-                        retry.requestFocus();
-                        onTileFocused(target, retry);
-                    }
-                }, 120);
-            }
-        });
+        if (!rowAligned(row)) {
+            alignRowToTop(row);
+        }
+        if (view.requestFocus()) {
+            onTileFocused(position, view);
+        }
     }
 
-    /** Si la vista esta dentro de los limites visibles de la rejilla. */
-    private boolean isVisible(View view) {
-        Rect bounds = new Rect();
-        view.getGlobalVisibleRect(bounds);
-        Rect parent = new Rect();
-        grid.getGlobalVisibleRect(parent);
-        return bounds.bottom <= parent.bottom && bounds.top >= parent.top;
+    /**
+     * ¿La fila esta pegada al borde superior de la rejilla?
+     */
+    private boolean rowAligned(int row) {
+        int position = gridModel.positionOf(row, 0);
+        if (position < 0) {
+            return true;
+        }
+        View view = layoutManager.findViewByPosition(position);
+        if (view == null) {
+            return false;
+        }
+        int offset = view.getTop() - grid.getScrollY() - grid.getPaddingTop();
+        return Math.abs(offset) <= 2;
+    }
+
+    /**
+     * Alinea una fila arriba del todo de la rejilla.
+     *
+     * El scroll es de pixeles, no un reposicionamiento: asi la tesela
+     * enfocada no se recicla y no se pierde el foco, que es lo que pasaba
+     * con {@code scrollToPositionWithOffset}.
+     */
+    private void alignRowToTop(int row) {
+        int position = gridModel.positionOf(row, 0);
+        if (position < 0) {
+            return;
+        }
+        View view = layoutManager.findViewByPosition(position);
+        if (view == null) {
+            return;
+        }
+        int delta = view.getTop() - grid.getScrollY() - grid.getPaddingTop();
+        if (delta != 0) {
+            grid.scrollBy(0, delta);
+        }
+    }
+
+    /**
+     * Enfoca una tesela cuando la rejilla ya la ha creado.
+     */
+    private void focusTileWhenLaidOut(final int position, final int attempt) {
+        grid.getViewTreeObserver().addOnGlobalLayoutListener(
+                new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        android.view.ViewTreeObserver observer = grid.getViewTreeObserver();
+                        if (observer.isAlive()) {
+                            observer.removeOnGlobalLayoutListener(this);
+                        }
+                        View view = layoutManager.findViewByPosition(position);
+                        if (view == null) {
+                            if (attempt < 5) {
+                                grid.postDelayed(
+                                        () -> focusTileWhenLaidOut(position, attempt + 1), 120);
+                            }
+                            return;
+                        }
+                        if (view.requestFocus()) {
+                            onTileFocused(position, view);
+                        }
+                    }
+                });
     }
 
     @Override
@@ -412,6 +479,11 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         // foco puede no haberse disparado para la tesela enfocada.
         adapter.refreshFocus(tile, true);
         moveHighlightTo(tile);
+    }
+
+    @Override
+    public void onAppClicked(AppCatalog.Entry entry) {
+        AppCatalog.launch(this, entry.component);
     }
 
     @Override
@@ -530,6 +602,14 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
 
     // ------------------------------------------------------------- acciones
 
+    /**
+     * Activa lo que tenga el foco.
+     *
+     * En una tesela se abre la app que dice la propia tesela, mirando su
+     * posicion en la rejilla: si el foco se pierde un instante al
+     * recomponer la rejilla, el sistema lo pasa a la primera tesela y se
+     * abriria la app equivocada.
+     */
     private void activateFocused() {
         View focused = getCurrentFocus();
         if (focused == null) {
@@ -537,11 +617,27 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
         }
         if (focused == btnInputs) {
             toggleInputs();
-        } else if (focused == btnSettings) {
-            openSettings();
-        } else if (focused == btnWifi) {
-            // La pastilla de Wi-Fi es informativa.
+            return;
         }
+        if (focused == btnWifi) {
+            openWifiSettings();
+            return;
+        }
+        if (focused == btnSettings) {
+            openSettings();
+            return;
+        }
+        View tile = focusedTile();
+        if (tile != null) {
+            int position = layoutManager.getPosition(tile);
+            AppCatalog.Entry entry = adapter.itemAt(position);
+            if (entry != null) {
+                AppCatalog.launch(this, entry.component);
+            }
+            return;
+        }
+        // Filas del desplegable de entradas: cada una tiene su listener.
+        focused.performClick();
     }
 
     private void openSettings() {
@@ -550,123 +646,163 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } catch (Exception e) {
-            // Si falla Ajustes, no hay nada mas que hacer.
+            android.util.Log.w("TVLauncher", "no se pudieron abrir los ajustes: " + e);
         }
+    }
+
+    private void openWifiSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception e) {
+            // Si falla Wi-Fi, no hay nada mas que hacer.
+        }
+    }
+
+    // ------------------------------------------------------------- entradas
+
+    private boolean panelOpen() {
+        return inputsPanel.getVisibility() == View.VISIBLE;
     }
 
     /**
      * Desplegable de entradas bajo la pastilla.
      */
     private void toggleInputs() {
-        if (inputsHolder.view.getVisibility() == View.VISIBLE) {
-            inputsHolder.view.setVisibility(View.GONE);
+        if (panelOpen()) {
+            closePanel();
             return;
         }
-        inputsHolder.view.removeAllViews();
-        List<String> inputs = availableInputs();
-        if (inputs.isEmpty()) {
-            addInputRow(getString(R.string.input_none), null);
-        } else {
-            for (String input : inputs) {
-                addInputRow(input, input);
-            }
-        }
-        inputsHolder.view.setVisibility(View.VISIBLE);
+        panelReturnFocus = getCurrentFocus();
+        buildInputsPanel();
+        inputsPanel.setVisibility(View.VISIBLE);
+        focusPanelRow(0);
     }
 
-    private void addInputRow(String label, final String input) {
+    private void closePanel() {
+        if (!panelOpen()) {
+            return;
+        }
+        inputsPanel.setVisibility(View.GONE);
+        View back = panelReturnFocus;
+        panelReturnFocus = null;
+        if (back != null) {
+            back.requestFocus();
+        } else {
+            btnInputs.requestFocus();
+        }
+    }
+
+    private void buildInputsPanel() {
+        inputsPanel.removeAllViews();
+        List<InputOption> options = inputOptions();
+        if (options.isEmpty()) {
+            addInputRow(getString(R.string.input_none), null);
+            return;
+        }
+        for (InputOption option : options) {
+            addInputRow(option.label, option);
+        }
+    }
+
+    private void addInputRow(String label, final InputOption option) {
         TextView row = new TextView(this);
         row.setText(label);
-        row.setTextColor(getResources().getColor(R.color.text_primary));
+        row.setTextColor(getResources().getColor(R.color.text_secondary));
         row.setTextSize(17f);
         row.setPadding(28, 18, 28, 18);
+        row.setBackgroundResource(R.drawable.input_row_background);
         row.setFocusable(true);
         row.setFocusableInTouchMode(true);
+        row.setOnFocusChangeListener((v, focused) -> ((TextView) v).setTextColor(
+                getResources().getColor(focused ? R.color.text_primary : R.color.text_secondary)));
         row.setOnClickListener(v -> {
-            if (input != null) {
-                switchInput(input);
+            if (option != null) {
+                if (option.systemPicker) {
+                    openSystemInputPicker();
+                } else {
+                    AppCatalog.launch(this, option.component);
+                }
             }
-            inputsHolder.view.setVisibility(View.GONE);
+            closePanel();
         });
-        inputsHolder.view.addView(row);
+        inputsPanel.addView(row);
     }
 
     /**
-     * Entradas disponibles en el dispositivo.
+     * Las entradas que se pueden abrir de verdad.
+     *
+     * El Mi TV Stick no tiene HDMI ni tuner propios (el HDMI es del
+     * televisor), y el sistema registra los servicios de previsualizacion de
+     * las apps de streaming como si fueran tuner. Solo se listan las entradas
+     * reales: el selector del sistema, si existe, y la TV en directo.
      */
-    private List<String> availableInputs() {
-        List<String> inputs = new ArrayList<>();
+    private List<InputOption> inputOptions() {
+        List<InputOption> options = new ArrayList<>();
+        boolean picker = hasSystemInputPicker();
+
+        if (picker) {
+            for (TvInputInfo info : tvInputs()) {
+                int type = info.getType();
+                if (type == TvInputs.TYPE_HDMI || type == TvInputs.TYPE_PHYSICAL_HDMI) {
+                    addOption(options, getString(R.string.input_hdmi,
+                            TvInputs.hdmiNumber(info.getId())), null, true);
+                } else if (type == TvInputs.TYPE_COMPOSITE
+                        || type == TvInputs.TYPE_PHYSICAL_COMPOSITE) {
+                    addOption(options, getString(R.string.input_av), null, true);
+                } else if (type == TvInputInfo.TYPE_TUNER && !TvInputs.isPreview(info.getId())) {
+                    addOption(options, getString(R.string.input_live_tv), null, true);
+                }
+            }
+        }
+
+        // La TV en directo: la entrada real del stick.
+        ComponentName liveTv = AppCatalog.liveTvComponent(this);
+        if (liveTv != null) {
+            addOption(options, getString(R.string.input_live_tv), liveTv, false);
+        }
+        return options;
+    }
+
+    /** Anade una entrada si no hay otra con la misma etiqueta. */
+    private void addOption(List<InputOption> options, String label,
+                           ComponentName component, boolean systemPicker) {
+        for (InputOption option : options) {
+            if (option.label.equals(label)) {
+                return;
+            }
+        }
+        options.add(new InputOption(label, component, systemPicker));
+    }
+
+    /**
+     * Entradas declaradas por el dispositivo.
+     */
+    private List<TvInputInfo> tvInputs() {
+        List<TvInputInfo> list = new ArrayList<>();
         try {
-            android.media.tv.TvInputManager manager =
-                    (android.media.tv.TvInputManager) getSystemService(Context.TV_INPUT_SERVICE);
+            TvInputManager manager =
+                    (TvInputManager) getSystemService(Context.TV_INPUT_SERVICE);
             if (manager != null) {
-                List<android.media.tv.TvInputInfo> list = manager.getTvInputList();
-                if (list != null) {
-                    for (android.media.tv.TvInputInfo info : list) {
-                        int type = info.getType();
-                        if (type == android.media.tv.TvInputInfo.TYPE_HDMI) {
-                            inputs.add(getString(R.string.input_hdmi, hdmiNumber(info)));
-                        } else if (type == android.media.tv.TvInputInfo.TYPE_COMPOSITE) {
-                            inputs.add(getString(R.string.input_av));
-                        } else if (type == android.media.tv.TvInputInfo.TYPE_TUNER) {
-                            inputs.add(getString(R.string.input_live_tv));
-                        }
-                    }
+                List<TvInputInfo> infos = manager.getTvInputList();
+                if (infos != null) {
+                    list.addAll(infos);
                 }
             }
         } catch (Exception e) {
             // Sin framework de TV: no hay entradas.
         }
-        return inputs;
+        return list;
     }
 
-    /**
-     * Numero de puerto HDMI de una entrada, deducido de su id.
-     * El framework no expone el numero directamente en la API publica.
-     */
-    private int hdmiNumber(android.media.tv.TvInputInfo info) {
-        String id = info.getId();
-        if (id == null) {
-            return 1;
-        }
-        // Los ids de HDMI suelen acabar en el numero de puerto.
-        int lastDigit = 0;
-        for (int i = id.length() - 1; i >= 0; i--) {
-            char c = id.charAt(i);
-            if (c >= '0' && c <= '9') {
-                lastDigit = c - '0';
-                break;
-            }
-        }
-        return lastDigit == 0 ? 1 : lastDigit;
-    }
-
-    /**
-     * Cambia a una entrada concreta.
-     */
-    private void switchInput(String label) {
+    /** ¿El sistema tiene selector de entradas? */
+    private boolean hasSystemInputPicker() {
+        PackageManager pm = getPackageManager();
         try {
-            android.media.tv.TvInputManager manager =
-                    (android.media.tv.TvInputManager) getSystemService(Context.TV_INPUT_SERVICE);
-            if (manager == null) {
-                return;
-            }
-            List<android.media.tv.TvInputInfo> list = manager.getTvInputList();
-            if (list == null) {
-                return;
-            }
-            for (android.media.tv.TvInputInfo info : list) {
-                int type = info.getType();
-                boolean hdmi = type == android.media.tv.TvInputInfo.TYPE_HDMI;
-                if (hdmi && getString(R.string.input_hdmi, hdmiNumber(info)).equals(label)) {
-                    // El framework publico no permite cambiar la entrada:
-                    // se abre el selector de entradas del sistema, que si lo hace.
-                    openSystemInputPicker();
-                    return;
-                }
-            }
+            return pm.resolveActivity(new Intent(ACTION_SHOW_TV_INPUTS), 0) != null;
         } catch (Exception e) {
-            // Cambio de entrada no permitido.
+            return false;
         }
     }
 
@@ -675,17 +811,51 @@ public class LauncherActivity extends AppCompatActivity implements AppAdapter.Fo
      */
     private void openSystemInputPicker() {
         try {
-            Intent intent = new Intent("android.media.tv.action.SHOW_TV_INPUTS");
+            Intent intent = new Intent(ACTION_SHOW_TV_INPUTS);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } catch (Exception e) {
-            try {
-                Intent intent = new Intent(Settings.ACTION_SETTINGS);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            } catch (Exception ignored) {
-                // Nada que hacer.
+            // El sistema no tiene selector de entradas.
+        }
+    }
+
+    // ------------------------------------------------- foco del desplegable
+
+    /** Mueve el foco dentro del desplegable de entradas. */
+    private void moveInPanel(int delta) {
+        int count = inputsPanel.getChildCount();
+        if (count == 0) {
+            return;
+        }
+        int index = panelRowIndex(getCurrentFocus());
+        if (index < 0) {
+            focusPanelRow(0);
+            return;
+        }
+        int next = index + delta;
+        if (next < 0 || next >= count) {
+            // El foco no se sale del desplegable.
+            return;
+        }
+        focusPanelRow(next);
+    }
+
+    private int panelRowIndex(View view) {
+        if (view == null) {
+            return -1;
+        }
+        for (int i = 0; i < inputsPanel.getChildCount(); i++) {
+            if (inputsPanel.getChildAt(i) == view) {
+                return i;
             }
         }
+        return -1;
+    }
+
+    private void focusPanelRow(int index) {
+        if (index < 0 || index >= inputsPanel.getChildCount()) {
+            return;
+        }
+        inputsPanel.getChildAt(index).requestFocus();
     }
 }

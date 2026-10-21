@@ -19,15 +19,17 @@ import java.util.List;
  */
 public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
 
-    /** Interfaz con el callback de foco. */
-    public interface FocusListener {
+    /** Interfaz con los callbacks de foco y de clic. */
+    public interface Listener {
         void onTileFocused(int position, View tile);
+
+        void onAppClicked(AppCatalog.Entry entry);
     }
 
     private final List<AppCatalog.Entry> items = new ArrayList<>();
-    private final FocusListener listener;
+    private final Listener listener;
 
-    public AppAdapter(FocusListener listener) {
+    public AppAdapter(Listener listener) {
         this.listener = listener;
         setHasStableIds(true);
     }
@@ -71,6 +73,14 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
                 }
             } else {
                 clearFocus(v);
+            }
+        });
+        // Sin esto la tesela no abre nada: la tecla OK acaba en performClick().
+        holder.itemView.setOnClickListener(v -> {
+            int current = holder.getBindingAdapterPosition();
+            AppCatalog.Entry clicked = itemAt(current);
+            if (listener != null && clicked != null) {
+                listener.onAppClicked(clicked);
             }
         });
     }

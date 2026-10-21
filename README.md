@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="dist/tvlauncher-1.0-release.apk"><img alt="descargar" src="https://img.shields.io/badge/APK-1.6%20MB-es.hugoperezvigo.tvlauncher-ff5f5f7?style=flat-square&labelColor=1a1a1e"></a>
+  <a href="dist/tvlauncher-1.1-release.apk"><img alt="descargar" src="https://img.shields.io/badge/APK-1.6%20MB-es.hugoperezvigo.tvlauncher-ff5f5f7?style=flat-square&labelColor=1a1a1e"></a>
   <img alt="licencia" src="https://img.shields.io/badge/licencia-MIT-8E8E93?style=flat-square&labelColor=1a1a1e">
   <img alt="android" src="https://img.shields.io/badge/Android-9%20(API%2028)-3DDC84?style=flat-square&labelColor=1a1a1e">
   <img alt="java" src="https://img.shields.io/badge/Java-11-8E8E93?style=flat-square&labelColor=1a1a1e">
@@ -45,8 +45,8 @@ Todo es **reversible**: no se toca la partición de firmware ni el bootloader.
 
 | | |
 |---|---|
-| [`tvlauncher-1.0-release.apk`](dist/tvlauncher-1.0-release.apk) | 1,6 MB · release firmado · `es.hugoperezvigo.tvlauncher` |
-| [`sha256`](dist/tvlauncher-1.0-release.apk.sha256) | `ac4de70b…c7f` |
+| [`tvlauncher-1.1-release.apk`](dist/tvlauncher-1.1-release.apk) | 1,6 MB · release firmado · `es.hugoperezvigo.tvlauncher` |
+| [`sha256`](dist/tvlauncher-1.1-release.apk.sha256) | `3051bcc2…2b77f` |
 
 ```bash
 adb install -r tvlauncher-1.0-release.apk
@@ -65,7 +65,7 @@ explicado en el [informe](docs/INFORME.md#6-por-qu%C3%A9-hay-que-desactivar-el-l
 ```bash
 cd launcher
 ./build.sh assembleRelease      # necesita el SDK de Android y JDK 21
-./build.sh testDebugUnitTest    # 32 tests
+./build.sh testDebugUnitTest    # 42 tests
 ```
 
 El build usa el toolchain de Windows (SDK en `C:\Users\Hugop\AppData\Local\Android\Sdk`,
@@ -89,13 +89,18 @@ release sale sin firmar y el de debug funciona igual.
 
 - Fondo negro con un halo radial muy suave, reloj grande y fino, fecha y
   saludo, todo en **Outfit** (OFL).
-- Menús redondeados con icono: **Entradas**, **Wi-Fi** y **Ajustes**.
+- Menús redondeados con icono: **Entradas**, **Wi-Fi** y **Ajustes**. Los tres
+  hacen algo: entradas, ajustes de red y ajustes del sistema.
 - Rejilla de **4 columnas a todo el ancho** con todas las apps de TV.
 - Un único **cristal** que salta de tesela en tesela; la enfocada crece y
   muestra su nombre debajo.
 - **Navegación determinista**: Up/Down mueven exactamente una fila, Up desde
   la primera fila sube a la barra, los extremos de la barra no se caen a las
   teselas y se recuerda la última tesela enfocada.
+- Al desplazarse, la fila enfocada queda **entera arriba**: ninguna fila se
+  ve partida por la mitad.
+- Al volver de una app se recupera la **última tesela enfocada**, no la
+  primera.
 
 El orden de las apps se configura en
 [`config.xml`](launcher/app/src/main/res/values/config.xml): las de
@@ -140,11 +145,12 @@ TV-Launcher/
 ├── PROMPT.md             prompt para repetirlo en otra tele
 ├── LICENSE               MIT
 ├── docs/INFORME.md       informe completo
+├── docs/HOTFIX-2026-10-21.md  el arreglo del launcher roto
 ├── docs/GUIA-DEBLOAT.md  guía paso a paso
 ├── docs/PLAN.md          plan del debloat por lotes
 ├── docs/capturas/        capturas de referencia
 ├── dist/                 APK firmado + checksum
-├── launcher/             código fuente del launcher (Java, 32 tests)
+├── launcher/             código fuente del launcher (Java, 42 tests)
 ├── tools/                backup, apply, disable, restore, check, cabecera
 └── backup/2026-10-20/    estado original del dispositivo
 ```

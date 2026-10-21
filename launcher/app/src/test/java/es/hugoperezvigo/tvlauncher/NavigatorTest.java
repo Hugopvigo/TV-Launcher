@@ -2,10 +2,15 @@ package es.hugoperezvigo.tvlauncher;
 
 import static org.junit.Assert.assertEquals;
 
+import es.hugoperezvigo.tvlauncher.grid.Grid;
+import es.hugoperezvigo.tvlauncher.grid.GridItem;
 import es.hugoperezvigo.tvlauncher.nav.FocusState;
 import es.hugoperezvigo.tvlauncher.nav.Navigator;
 import es.hugoperezvigo.tvlauncher.nav.Zone;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Navegacion determinista con D-pad.
@@ -15,12 +20,22 @@ import org.junit.Test;
  *  - Up desde la primera fila sube a la barra superior.
  *  - Los extremos de la barra superior no se caen a las teselas.
  *  - Se recuerda la ultima tesela enfocada.
+ *  - La ultima fila puede estar incompleta: el foco no cae en un hueco.
  */
 public class NavigatorTest {
 
+    /** Rejilla de 4 columnas con el numero de apps indicado. */
+    private Navigator navigator(int appCount) {
+        List<GridItem> items = new ArrayList<>();
+        for (int i = 0; i < appCount; i++) {
+            items.add(new GridItem("app" + i, "App " + i));
+        }
+        return new Navigator(Grid.of(items, 4), 3);
+    }
+
     /** 3 filas de 4 columnas, barra superior con 3 botones. */
     private Navigator navigator() {
-        return new Navigator(3, 4, 3);
+        return navigator(12);
     }
 
     @Test
@@ -79,7 +94,7 @@ public class NavigatorTest {
     }
 
     @Test
-    public void elExtremoIzquierdoDeLaBarraNoSeCaeaLasTeselas() {
+    public void elExtremoIzquierdoDeLaBarraNoSeCaeLasTeselas() {
         Navigator n = navigator();
         n.up();                 // barra superior, indice 0
         FocusState s = n.left().focus(); // en el extremo izquierdo
@@ -126,8 +141,7 @@ public class NavigatorTest {
 
     @Test
     public void enLaUltimaFilaAbajoNoSeSaleDeLaRejilla() {
-        Navigator n = navigator();
-        n.down().down();
+        Navigator n = navigator().down().down();
         FocusState s = n.down().focus();
         assertEquals(Zone.GRID, s.zone);
         assertEquals(2, s.row);
@@ -136,12 +150,55 @@ public class NavigatorTest {
     @Test
     public void laFilaSeAjustaAlNumeroDeColumnasReales() {
         // 2 apps: una sola fila con 2 columnas.
-        Navigator n = new Navigator(1, 2, 3);
+        Navigator n = navigator(2);
         FocusState s = n.right().focus();
         assertEquals(1, s.column);
         // No hay segunda fila: abajo se queda.
         FocusState s2 = n.down().focus();
         assertEquals(Zone.GRID, s2.zone);
         assertEquals(0, s2.row);
+    }
+
+    // ------------------------------------------- ultima fila incompleta
+
+    @Test
+    public void laUltimaFilaIncompletaSeAjusta() {
+        // 13 apps: 3 filas de 4 y una ultima con una sola.
+        Navigator n = navigator(13);
+        n.down().down().down();
+        FocusState s = n.focus();
+        assertEquals(3, s.row);
+        assertEquals(0, s.column);
+    }
+
+    @Test
+    public void elFocoNoCaeEnUnHuecoDeLaUltimaFila() {
+        // 13 apps: 3 filas de 4 y una ultima con una sola.
+        Navigator n = navigator(13);
+        n.down().down().down();
+        n.right();                       // no hay segunda tesela en esa fila
+        FocusState s = n.focus();
+        assertEquals(3, s.row);
+        assertEquals(0, s.column);
+    }
+
+    @Test
+    public void izquierdaDesdeLaUltimaFilaSaltaAlFinalDeLaDeArriba() {
+        // 13 apps: 3 filas de 4 y una ultima con una sola.
+        Navigator n = navigator(13);
+        n.down().down().down();
+        FocusState s = n.left().focus();
+        assertEquals(2, s.row);
+        assertEquals(3, s.column);
+    }
+
+    @Test
+    public void abajoAjustaLaColumnaALaUltimaFila() {
+        // 13 apps: al bajar a la ultima fila la columna 3 no existe.
+        Navigator n = navigator(13);
+        n.right().right().right();       // columna 3 de la fila 0
+        FocusState s = n.down().down().down().focus();
+        assertEquals(3, s.row);
+        assertEquals(0, s.column);
     }
 }

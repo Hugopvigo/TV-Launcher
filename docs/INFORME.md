@@ -3,10 +3,14 @@
 Informe completo del trabajo hecho el **20 de octubre de 2026** sobre el
 **Xiaomi Mi TV Stick (MiTV-AESP0)**, codename `aquaman`, Android 9 / API 28,
 **Google TV**, firmware `PI.2055` (build 22.9.6.2055), 1 GB de RAM, IP
-`192.168.3.124`.
+`192.168.3.124` (cambia con el DHCP; el 21-oct estaba en `192.168.3.26`).
 
 Todo es **reversible**. Ni un solo cambio en la partición de firmware, ni en el
 bootloader, ni desinstalación de nada del sistema.
+
+> 📄 **[El arreglo del launcher roto → `HOTFIX-2026-10-21.md`](HOTFIX-2026-10-21.md)** —
+> el launcher instalado el 20-oct no abría ninguna app; el 21-oct se arregló y
+> se verificó contra el stick.
 
 ---
 
@@ -78,11 +82,11 @@ firestick-debloat/
 
 ### El APK
 
-`dist/tvlauncher-1.0-release.apk` (1,6 MB, release firmado) ya está compilado y con su checksum
+`dist/tvlauncher-1.1-release.apk` (1,6 MB, release firmado) ya está compilado y con su checksum
 SHA-256:
 
 ```
-ac4de70bb3785955a59752af74815a72b1601c435e8edbdbad8911ac61355c7f
+3051bcc2c4ccb260c0ac51d815169ff73a8011ede49c516c5870b6487022b77f
 ```
 
 Para instalarlo a mano:
@@ -209,7 +213,7 @@ En cambio, `pm disable-user` (los 21 paquetes del sistema) **no borra nada**.
 ## 4. El launcher propio
 
 Java, AndroidX RecyclerView, `minSdk 21`, `targetSdk 34`. 2,2 MB de APK,
-32 tests unitarios. Detalles técnicos en [`launcher/README.md`](../launcher/README.md).
+42 tests unitarios. Detalles técnicos en [`launcher/README.md`](../launcher/README.md).
 
 ![Launcher](capturas/03-launcher-inicio.png)
 
@@ -282,6 +286,34 @@ cd launcher && ./tools/uninstall-launcher.sh
 
 Devuelve el HOME al launcher de Google TV, lo reactiva, desinstala el
 nuestro y reinicia.
+
+---
+
+## 4b. El hotfix del launcher (21-oct-2026)
+
+El launcher instalado el 20-oct **no abría ninguna app**: el botón OK no
+hacía nada, el desplegable de «Entradas» mostraba tres filas iguales que no
+se podían alcanzar y «Wi-Fi» no estaba conectado a nada. El detalle está en
+[`HOTFIX-2026-10-21.md`](HOTFIX-2026-10-21.md); el resumen:
+
+| Antes | Ahora |
+|---|---|
+| Ninguna app se abría | La tecla OK abre la app enfocada, y se abre **la de esa tesela** (no la que el sistema tenga enfocada por error) |
+| «Entradas»: 3 filas «Live TV» inalcanzables | Desplegable navegable con las entradas reales: el selector del sistema si lo hay y la TV en directo |
+| «Wi-Fi» no hacía nada | Abre los ajustes de red del sistema |
+| Al volver de una app, el foco volvía a la primera tesela | Se recupera la última tesela enfocada |
+| Las filas se veían partidas al desplazarse | La fila enfocada queda entera arriba |
+| El foco se perdía al recomponer la rejilla y se abría la app equivocada | El scroll es de píxeles: la tesela no se recicla |
+
+En el stick, el 21-oct:
+
+- Se instaló `es.hugoperezvigo.tvlauncher` **1.1** (release firmado) y se
+  puso como HOME.
+- Se desinstaló `com.suop.tvlauncher`, que era el paquete antiguo (build
+  debug) que se había instalado el 20-oct: **el launcher del repo nunca
+  había llegado a la tele**.
+- Se verificó contra el stick, en frío y en caliente: apps, Ajustes, Wi-Fi,
+  Entradas, el desplegable y el retorno desde una app.
 
 ---
 
@@ -369,12 +401,16 @@ cd launcher && ./tools/uninstall-launcher.sh
 
 ### El ADB
 
-Está **cerrado** (puerto 5555 = `Connection refused`, verificado tras
-reiniciar). Para volver a conectarlo:
+El 20-oct se dejó **cerrado** (puerto 5555 = `Connection refused`, verificado
+tras reiniciar). El 21-oct se volvió a abrir para el hotfix y **sigue
+abierto**: `adb connect 192.168.3.26:5555` (la IP cambia con el DHCP; se
+puede localizar con `adb mdns services`).
+
+Para cerrarlo otra vez:
 
 1. En el stick: Ajustes → Developer options → *ADB debugging* (la casilla de
-   red) → activarla y aceptar el diálogo en pantalla.
-2. `adb connect 192.168.3.124:5555`
+   red) → desactivarla.
+2. `adb disconnect` y comprobar que `nc -vz <ip> 5555` falla.
 
 ---
 
@@ -400,6 +436,21 @@ si hay que repetir el trabajo en otro modelo de Xiaomi:
    de la lista → usar `< /dev/null` en cada llamada.
 9. El servicio de TV de Xiaomi (`mitv.service`) tiene permiso **HDMI_CEC** y
    gestiona el apagado del TV: no se debe tocar.
+10. El sistema registra los servicios de **previsualización** de las apps de
+    streaming (Play Películas, SkyShowtime) como entradas de tipo `TUNER`:
+    por eso el desplegable de entradas mostraba tres «Live TV» que no eran
+    entradas. Hay que filtrarlos por el identificador del servicio.
+11. En este stick **no hay HDMI ni tuner propios** (el HDMI es del
+    televisor) y ninguna actividad atiende `SHOW_TV_INPUTS` ni la categoría
+    `LIVE_TV`: la TV en directo es la app de Google TV.
+12. Un reposicionamiento de la rejilla (`scrollToPositionWithOffset`)
+    **rehace el layout y recicla la tesela enfocada**, que se queda sin
+    foco: el sistema mueve entonces el foco a la primera tesela y se abre
+    la app equivocada. El scroll tiene que ser de píxeles.
+13. El stick se queda **sin red** si entra en suspensión profunda (el
+    Bluetooth y el Wi-Fi se apagan y el mando ya no lo despierta): hay que
+    desenchufarlo del USB del televisor y volverlo a enchufar. La IP
+    además cambia con el DHCP.
 
 ---
 
