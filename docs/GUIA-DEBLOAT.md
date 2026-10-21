@@ -22,7 +22,7 @@ Si prefieres que lo haga un asistente, el prompt está en
 **En el ordenador**: `adb` en el PATH y el stick en la misma red.
 
 ```bash
-adb connect 192.168.3.124:5555      # la IP del stick
+adb connect 192.168.3.26:5555      # la IP del stick (cambia con el DHCP)
 adb devices                          # debe salir "device"
 ```
 
@@ -184,7 +184,7 @@ adb shell reboot
 Y comprueba que el puerto ya no abre:
 
 ```bash
-nc -vz 192.168.3.124 5555     # debe fallar
+nc -vz 192.168.3.26 5555     # debe fallar
 ```
 
 En el stick, además: *Opciones de desarrollador* → desactiva **Depuración ADB**
