@@ -363,6 +363,11 @@ Con `pm disable-user --user 0 com.google.android.tvlauncher` ya no lo relanza y
 el launcher propio queda como inicio, **también tras reiniciar**. Es
 reversible con `pm enable`.
 
+> **El `preferred-xml` puede quedar vacío tras reiniciar** (se limpia solo).
+> No pasa nada: el sistema resuelve HOME a la única app de inicio que queda
+> habilitada, que es la nuestra. Si se quiere volver a fijarla:
+> `adb shell cmd package set-home-activity es.hugoperezvigo.tvlauncher/.LauncherActivity`.
+
 Alternativas que se probaron y no sirvieron:
 
 | Se probó | Resultado |
